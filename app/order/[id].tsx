@@ -74,41 +74,25 @@ export default function OrderTrackingScreen() {
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
+    router.push('/(tabs)/orders');
   };
 
   const handleCallDriver = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // Implement call functionality
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    // In a real app, this would initiate a phone call
+    console.log('Call driver');
   };
 
   const handleMessageDriver = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // Implement messaging functionality
+    // In a real app, this would open a chat
+    console.log('Message driver');
   };
 
-  const getStatusColor = (status: OrderStatus) => {
-    switch (status) {
-      case 'confirmed':
-        return '#3b82f6';
-      case 'preparing':
-        return '#f59e0b';
-      case 'ready_for_pickup':
-        return '#8b5cf6';
-      case 'on_the_way':
-        return theme.primary;
-      case 'delivered':
-        return '#10b981';
-      case 'cancelled':
-        return '#ef4444';
-      default:
-        return theme.textTertiary;
-    }
-  };
-
-  const getCurrentStepIndex = () => {
-    if (!order) return -1;
-    return ORDER_STATUS_STEPS.findIndex((step) => step.status === order.status);
+  const handleCancelOrder = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    // In a real app, this would show a confirmation dialog
+    console.log('Cancel order');
   };
 
   if (!order) {
@@ -123,273 +107,262 @@ export default function OrderTrackingScreen() {
         </View>
         <View style={styles.emptyContainer}>
           <Ionicons name="receipt-outline" size={80} color={theme.textTertiary} />
-          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-            Order not found
-          </Text>
+          <Text style={[styles.emptyText, { color: theme.text }]}>Order not found</Text>
         </View>
       </View>
     );
   }
 
-  const currentStepIndex = getCurrentStepIndex();
+  const currentStepIndex = ORDER_STATUS_STEPS.findIndex((step) => step.status === order.status);
+  const isDelivered = order.status === 'delivered';
+  const isCancelled = order.status === 'cancelled';
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
-      <View
-        style={[
-          styles.header,
-          { paddingTop: insets.top + 16, backgroundColor: theme.card },
-          Shadows.sm,
-        ]}
-      >
+      <View style={[styles.header, { paddingTop: insets.top + 16, backgroundColor: theme.card }]}>
         <Pressable onPress={handleBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </Pressable>
-        <View style={styles.headerCenter}>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>Order Tracking</Text>
-          <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
-            Order #{order.id.slice(0, 8)}
-          </Text>
-        </View>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Order #{order.id.slice(0, 8)}</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + 20 },
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Map */}
-        {order.status === 'on_the_way' && order.deliveryPartner && (
+        {!isDelivered && !isCancelled && order.deliveryLocation && (
           <View style={styles.mapContainer}>
             <MapView
               ref={mapRef}
               provider={PROVIDER_GOOGLE}
               style={styles.map}
               initialRegion={{
-                latitude: order.deliveryAddress.lat,
-                longitude: order.deliveryAddress.lng,
-                latitudeDelta: 0.02,
-                longitudeDelta: 0.02,
+                latitude: order.deliveryLocation.latitude,
+                longitude: order.deliveryLocation.longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
               }}
             >
-              {/* Delivery Address Marker */}
+              {/* Restaurant Marker */}
               <Marker
                 coordinate={{
-                  latitude: order.deliveryAddress.lat,
-                  longitude: order.deliveryAddress.lng,
+                  latitude: order.restaurant.location.latitude,
+                  longitude: order.restaurant.location.longitude,
                 }}
+                title={order.restaurant.name}
               >
-                <View style={styles.markerContainer}>
-                  <Ionicons name="home" size={24} color={theme.primary} />
+                <View style={[styles.markerContainer, { backgroundColor: theme.primary }]}>
+                  <Ionicons name="restaurant" size={20} color="#ffffff" />
                 </View>
               </Marker>
 
-              {/* Driver Location Marker */}
+              {/* Delivery Location Marker */}
               <Marker
                 coordinate={{
-                  latitude: order.deliveryPartner.currentLocation.lat,
-                  longitude: order.deliveryPartner.currentLocation.lng,
+                  latitude: order.deliveryLocation.latitude,
+                  longitude: order.deliveryLocation.longitude,
                 }}
+                title="Delivery Location"
               >
-                <View style={styles.driverMarker}>
-                  <Ionicons name="bicycle" size={20} color="#ffffff" />
+                <View style={[styles.markerContainer, { backgroundColor: '#ef4444' }]}>
+                  <Ionicons name="home" size={20} color="#ffffff" />
                 </View>
               </Marker>
+
+              {/* Driver Marker (if on the way) */}
+              {order.status === 'on_the_way' && order.driver && (
+                <Marker
+                  coordinate={{
+                    latitude: order.deliveryLocation.latitude + 0.002,
+                    longitude: order.deliveryLocation.longitude + 0.002,
+                  }}
+                  title={order.driver.name}
+                >
+                  <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+                    <View style={[styles.driverMarker, { backgroundColor: theme.primary }]}>
+                      <Ionicons name="bicycle" size={24} color="#ffffff" />
+                    </View>
+                  </Animated.View>
+                </Marker>
+              )}
 
               {/* Route Polyline */}
               <Polyline
                 coordinates={[
                   {
-                    latitude: order.deliveryPartner.currentLocation.lat,
-                    longitude: order.deliveryPartner.currentLocation.lng,
+                    latitude: order.restaurant.location.latitude,
+                    longitude: order.restaurant.location.longitude,
                   },
                   {
-                    latitude: order.deliveryAddress.lat,
-                    longitude: order.deliveryAddress.lng,
+                    latitude: order.deliveryLocation.latitude,
+                    longitude: order.deliveryLocation.longitude,
                   },
                 ]}
                 strokeColor={theme.primary}
                 strokeWidth={3}
-                lineDashPattern={[5, 5]}
+                lineDashPattern={[10, 5]}
               />
             </MapView>
           </View>
         )}
 
-        {/* Status Timeline */}
-        <View style={[styles.section, { backgroundColor: theme.card }, Shadows.sm]}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Order Status</Text>
-            <Badge
-              label={order.status.replace(/_/g, ' ')}
-              variant="primary"
-              size="sm"
-            />
-          </View>
-
-          <View style={styles.timeline}>
-            {ORDER_STATUS_STEPS.map((step, index) => {
-              const isCompleted = index <= currentStepIndex;
-              const isActive = index === currentStepIndex;
-              const statusColor = getStatusColor(step.status);
-
-              return (
-                <View key={step.status} style={styles.timelineItem}>
-                  <View style={styles.timelineLeft}>
-                    <Animated.View
-                      style={[
-                        styles.timelineIcon,
-                        {
-                          backgroundColor: isCompleted ? statusColor : theme.border,
-                          transform: isActive ? [{ scale: pulseAnim }] : [],
-                        },
-                      ]}
-                    >
-                      <Ionicons
-                        name={step.icon as any}
-                        size={20}
-                        color={isCompleted ? '#ffffff' : theme.textTertiary}
-                      />
-                    </Animated.View>
-                    {index < ORDER_STATUS_STEPS.length - 1 && (
-                      <View
-                        style={[
-                          styles.timelineLine,
-                          {
-                            backgroundColor: isCompleted ? statusColor : theme.border,
-                          },
-                        ]}
-                      />
-                    )}
-                  </View>
-                  <View style={styles.timelineContent}>
-                    <Text
-                      style={[
-                        styles.timelineLabel,
-                        {
-                          color: isCompleted ? theme.text : theme.textSecondary,
-                          fontWeight: isActive ? '700' : '500',
-                        },
-                      ]}
-                    >
-                      {step.label}
-                    </Text>
-                    {isActive && (
-                      <View style={styles.timelineActive}>
-                        <StatusIndicator />
-                        <Text style={[styles.timelineActiveText, { color: theme.textSecondary }]}>
-                          In progress
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* Delivery Partner Info */}
-        {order.deliveryPartner && order.status === 'on_the_way' && (
-          <View style={[styles.section, { backgroundColor: theme.card }, Shadows.sm]}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>
-                Your Delivery Partner
-              </Text>
-            </View>
-
-            <View style={styles.driverCard}>
-              <Avatar
-                source={{ uri: order.deliveryPartner.avatar }}
-                name={order.deliveryPartner.name}
-                size={60}
-              />
-              <View style={styles.driverInfo}>
-                <Text style={[styles.driverName, { color: theme.text }]}>
-                  {order.deliveryPartner.name}
+        {/* Status Card */}
+        <View style={[styles.statusCard, { backgroundColor: theme.card }, Shadows.md]}>
+          <View style={styles.statusHeader}>
+            <View style={styles.statusHeaderLeft}>
+              <StatusIndicator status={order.status} />
+              <View>
+                <Text style={[styles.statusTitle, { color: theme.text }]}>
+                  {isCancelled
+                    ? 'Order Cancelled'
+                    : isDelivered
+                    ? 'Order Delivered'
+                    : ORDER_STATUS_STEPS[currentStepIndex]?.label || 'Processing'}
                 </Text>
-                <View style={styles.driverMeta}>
-                  <Ionicons name="star" size={14} color="#f59e0b" />
-                  <Text style={[styles.driverRating, { color: theme.text }]}>
-                    {order.deliveryPartner.rating}
-                  </Text>
-                  <Text style={[styles.driverDeliveries, { color: theme.textSecondary }]}>
-                    • {order.deliveryPartner.totalDeliveries} deliveries
-                  </Text>
-                </View>
-                <Text style={[styles.driverVehicle, { color: theme.textSecondary }]}>
-                  {order.deliveryPartner.vehicle}
+                <Text style={[styles.statusTime, { color: theme.textSecondary }]}>
+                  {order.estimatedDeliveryTime}
                 </Text>
               </View>
             </View>
+            <Badge
+              label={order.status.replace('_', ' ')}
+              variant={
+                isCancelled
+                  ? 'error'
+                  : isDelivered
+                  ? 'success'
+                  : order.status === 'on_the_way'
+                  ? 'warning'
+                  : 'info'
+              }
+            />
+          </View>
 
+          {/* Progress Steps */}
+          {!isCancelled && (
+            <View style={styles.progressContainer}>
+              {ORDER_STATUS_STEPS.map((step, index) => {
+                const isCompleted = index <= currentStepIndex;
+                const isCurrent = index === currentStepIndex;
+                const isLast = index === ORDER_STATUS_STEPS.length - 1;
+
+                return (
+                  <View key={step.status} style={styles.progressStep}>
+                    <View style={styles.progressStepLeft}>
+                      <View
+                        style={[
+                          styles.progressStepIcon,
+                          isCompleted
+                            ? { backgroundColor: theme.primary }
+                            : { backgroundColor: theme.border },
+                        ]}
+                      >
+                        <Ionicons
+                          name={step.icon as any}
+                          size={20}
+                          color={isCompleted ? '#ffffff' : theme.textTertiary}
+                        />
+                      </View>
+                      {!isLast && (
+                        <View
+                          style={[
+                            styles.progressStepLine,
+                            isCompleted
+                              ? { backgroundColor: theme.primary }
+                              : { backgroundColor: theme.border },
+                          ]}
+                        />
+                      )}
+                    </View>
+                    <View style={styles.progressStepContent}>
+                      <Text
+                        style={[
+                          styles.progressStepLabel,
+                          isCompleted ? { color: theme.text } : { color: theme.textTertiary },
+                          isCurrent && { fontWeight: '700' },
+                        ]}
+                      >
+                        {step.label}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </View>
+
+        {/* Driver Info */}
+        {order.driver && order.status === 'on_the_way' && (
+          <View style={[styles.driverCard, { backgroundColor: theme.card }, Shadows.sm]}>
+            <View style={styles.driverInfo}>
+              <Avatar source={order.driver.avatar} name={order.driver.name} size="lg" />
+              <View style={styles.driverDetails}>
+                <Text style={[styles.driverName, { color: theme.text }]}>{order.driver.name}</Text>
+                <View style={styles.driverMeta}>
+                  <Ionicons name="star" size={14} color="#f59e0b" />
+                  <Text style={[styles.driverRating, { color: theme.textSecondary }]}>
+                    {order.driver.rating}
+                  </Text>
+                  <Text style={[styles.driverVehicle, { color: theme.textTertiary }]}>
+                    • {order.driver.vehicle}
+                  </Text>
+                </View>
+              </View>
+            </View>
             <View style={styles.driverActions}>
-              <Button
-                label="Call"
+              <Pressable
                 onPress={handleCallDriver}
-                variant="outline"
-                icon="call"
-                style={{ flex: 1 }}
-              />
-              <Button
-                label="Message"
+                style={[styles.driverActionButton, { backgroundColor: theme.primary }]}
+              >
+                <Ionicons name="call" size={20} color="#ffffff" />
+              </Pressable>
+              <Pressable
                 onPress={handleMessageDriver}
-                variant="outline"
-                icon="chatbubble"
-                style={{ flex: 1 }}
-              />
+                style={[styles.driverActionButton, { backgroundColor: theme.secondary }]}
+              >
+                <Ionicons name="chatbubble" size={20} color={theme.primary} />
+              </Pressable>
             </View>
           </View>
         )}
 
-        {/* Delivery Address */}
-        <View style={[styles.section, { backgroundColor: theme.card }, Shadows.sm]}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="location" size={20} color={theme.primary} />
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>
-              Delivery Address
-            </Text>
-          </View>
-          <View style={styles.addressCard}>
-            <Text style={[styles.addressLabel, { color: theme.text }]}>
-              {order.deliveryAddress.label}
-            </Text>
-            <Text style={[styles.addressText, { color: theme.textSecondary }]}>
-              {order.deliveryAddress.street}
-            </Text>
-            <Text style={[styles.addressText, { color: theme.textSecondary }]}>
-              {order.deliveryAddress.city}, {order.deliveryAddress.zipCode}
-            </Text>
+        {/* Restaurant Info */}
+        <View style={[styles.restaurantCard, { backgroundColor: theme.card }, Shadows.sm]}>
+          <View style={styles.restaurantHeader}>
+            <Image source={{ uri: order.restaurant.image }} style={styles.restaurantImage} />
+            <View style={styles.restaurantInfo}>
+              <Text style={[styles.restaurantName, { color: theme.text }]}>
+                {order.restaurant.name}
+              </Text>
+              <Text style={[styles.restaurantCuisine, { color: theme.textSecondary }]}>
+                {order.restaurant.cuisine.join(' • ')}
+              </Text>
+            </View>
           </View>
         </View>
 
         {/* Order Items */}
-        <View style={[styles.section, { backgroundColor: theme.card }, Shadows.sm]}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="receipt" size={20} color={theme.primary} />
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Order Items</Text>
-            <Badge label={order.items.length.toString()} variant="secondary" size="sm" />
-          </View>
-
+        <View style={[styles.itemsCard, { backgroundColor: theme.card }, Shadows.sm]}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Order Items</Text>
           {order.items.map((item) => (
             <View key={item.id} style={styles.orderItem}>
-              <Image
-                source={{ uri: item.menuItem.image }}
-                style={styles.orderItemImage}
-                contentFit="cover"
-              />
-              <View style={styles.orderItemInfo}>
-                <Text style={[styles.orderItemName, { color: theme.text }]}>
-                  {item.menuItem.name}
-                </Text>
+              <View style={styles.orderItemLeft}>
                 <Text style={[styles.orderItemQuantity, { color: theme.textSecondary }]}>
-                  Qty: {item.quantity}
+                  {item.quantity}x
                 </Text>
+                <View>
+                  <Text style={[styles.orderItemName, { color: theme.text }]}>{item.name}</Text>
+                  {item.customizations && item.customizations.length > 0 && (
+                    <Text style={[styles.orderItemCustomizations, { color: theme.textTertiary }]}>
+                      {item.customizations.join(', ')}
+                    </Text>
+                  )}
+                </View>
               </View>
               <Text style={[styles.orderItemPrice, { color: theme.text }]}>
                 ${item.totalPrice.toFixed(2)}
@@ -397,67 +370,78 @@ export default function OrderTrackingScreen() {
             </View>
           ))}
 
-          <View style={[styles.orderDivider, { backgroundColor: theme.border }]} />
+          <View style={[styles.itemsDivider, { backgroundColor: theme.border }]} />
 
-          <View style={styles.orderSummary}>
-            <View style={styles.orderSummaryRow}>
-              <Text style={[styles.orderSummaryLabel, { color: theme.textSecondary }]}>
-                Subtotal
-              </Text>
-              <Text style={[styles.orderSummaryValue, { color: theme.text }]}>
-                ${order.subtotal.toFixed(2)}
-              </Text>
-            </View>
-            <View style={styles.orderSummaryRow}>
-              <Text style={[styles.orderSummaryLabel, { color: theme.textSecondary }]}>
-                Delivery Fee
-              </Text>
-              <Text style={[styles.orderSummaryValue, { color: theme.text }]}>
-                ${order.deliveryFee.toFixed(2)}
-              </Text>
-            </View>
-            <View style={styles.orderSummaryRow}>
-              <Text style={[styles.orderSummaryLabel, { color: theme.textSecondary }]}>
-                Tax
-              </Text>
-              <Text style={[styles.orderSummaryValue, { color: theme.text }]}>
-                ${order.tax.toFixed(2)}
-              </Text>
-            </View>
-            {order.discount > 0 && (
-              <View style={styles.orderSummaryRow}>
-                <Text style={[styles.orderSummaryLabel, { color: theme.primary }]}>
-                  Discount
-                </Text>
-                <Text style={[styles.orderSummaryValue, { color: theme.primary }]}>
-                  -${order.discount.toFixed(2)}
-                </Text>
-              </View>
-            )}
-            <View style={[styles.orderDivider, { backgroundColor: theme.border }]} />
-            <View style={styles.orderSummaryRow}>
-              <Text style={[styles.orderSummaryTotal, { color: theme.text }]}>Total</Text>
-              <Text style={[styles.orderSummaryTotal, { color: theme.text }]}>
-                ${order.total.toFixed(2)}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Help Section */}
-        <View style={[styles.section, { backgroundColor: theme.card }, Shadows.sm]}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="help-circle" size={20} color={theme.primary} />
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Need Help?</Text>
-          </View>
-          <Pressable style={styles.helpButton}>
-            <Ionicons name="chatbubbles" size={20} color={theme.text} />
-            <Text style={[styles.helpButtonText, { color: theme.text }]}>
-              Contact Support
+          <View style={styles.totalRow}>
+            <Text style={[styles.totalLabel, { color: theme.textSecondary }]}>Subtotal</Text>
+            <Text style={[styles.totalValue, { color: theme.text }]}>
+              ${order.subtotal.toFixed(2)}
             </Text>
-            <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
-          </Pressable>
+          </View>
+          <View style={styles.totalRow}>
+            <Text style={[styles.totalLabel, { color: theme.textSecondary }]}>Delivery Fee</Text>
+            <Text style={[styles.totalValue, { color: theme.text }]}>
+              ${order.deliveryFee.toFixed(2)}
+            </Text>
+          </View>
+          <View style={styles.totalRow}>
+            <Text style={[styles.totalLabel, { color: theme.textSecondary }]}>Tax</Text>
+            <Text style={[styles.totalValue, { color: theme.text }]}>
+              ${order.tax.toFixed(2)}
+            </Text>
+          </View>
+          <View style={styles.totalRow}>
+            <Text style={[styles.totalLabelBold, { color: theme.text }]}>Total</Text>
+            <Text style={[styles.totalValueBold, { color: theme.primary }]}>
+              ${order.total.toFixed(2)}
+            </Text>
+          </View>
         </View>
+
+        {/* Delivery Address */}
+        <View style={[styles.addressCard, { backgroundColor: theme.card }, Shadows.sm]}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Delivery Address</Text>
+          <View style={styles.addressContent}>
+            <Ionicons name="location" size={20} color={theme.primary} />
+            <View style={styles.addressText}>
+              <Text style={[styles.addressLabel, { color: theme.text }]}>
+                {order.deliveryAddress.label}
+              </Text>
+              <Text style={[styles.addressStreet, { color: theme.textSecondary }]}>
+                {order.deliveryAddress.street}
+              </Text>
+              <Text style={[styles.addressCity, { color: theme.textSecondary }]}>
+                {order.deliveryAddress.city}, {order.deliveryAddress.zipCode}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Actions */}
+        {!isDelivered && !isCancelled && (
+          <View style={styles.actions}>
+            <Button
+              title="Cancel Order"
+              onPress={handleCancelOrder}
+              variant="outline"
+              fullWidth
+            />
+          </View>
+        )}
+
+        {isDelivered && (
+          <View style={styles.actions}>
+            <Button
+              title="Reorder"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push(`/restaurant/${order.restaurant.id}`);
+              }}
+              variant="primary"
+              fullWidth
+            />
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -473,6 +457,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
   },
   backButton: {
     width: 40,
@@ -480,17 +466,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-  },
-  headerSubtitle: {
-    fontSize: 13,
-    marginTop: 2,
   },
   scrollView: {
     flex: 1,
@@ -499,7 +477,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   mapContainer: {
-    height: 250,
+    height: 300,
     borderRadius: 20,
     overflow: 'hidden',
     marginBottom: 16,
@@ -511,7 +489,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -521,189 +498,240 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   driverMarker: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#059669',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#ffffff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
   },
-  section: {
-    borderRadius: 16,
-    padding: 16,
+  statusCard: {
+    borderRadius: 20,
+    padding: 20,
     marginBottom: 16,
   },
-  sectionHeader: {
+  statusHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  statusHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    gap: 8,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    gap: 12,
     flex: 1,
   },
-  timeline: {
-    paddingLeft: 8,
+  statusTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
   },
-  timelineItem: {
+  statusTime: {
+    fontSize: 14,
+  },
+  progressContainer: {
+    gap: 0,
+  },
+  progressStep: {
     flexDirection: 'row',
-    marginBottom: 8,
+    gap: 16,
   },
-  timelineLeft: {
+  progressStepLeft: {
     alignItems: 'center',
-    marginRight: 16,
   },
-  timelineIcon: {
+  progressStepIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  timelineLine: {
+  progressStepLine: {
     width: 2,
     flex: 1,
-    marginTop: 4,
-    marginBottom: 4,
+    marginVertical: 4,
   },
-  timelineContent: {
+  progressStepContent: {
     flex: 1,
-    paddingTop: 8,
-    paddingBottom: 16,
+    paddingVertical: 8,
   },
-  timelineLabel: {
+  progressStepLabel: {
     fontSize: 15,
-    marginBottom: 4,
-  },
-  timelineActive: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 4,
-  },
-  timelineActiveText: {
-    fontSize: 13,
   },
   driverCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    borderRadius: 20,
+    padding: 20,
     marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   driverInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     flex: 1,
-    marginLeft: 12,
+  },
+  driverDetails: {
+    flex: 1,
   },
   driverName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     marginBottom: 4,
   },
   driverMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    gap: 4,
   },
   driverRating: {
     fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  driverDeliveries: {
-    fontSize: 13,
-    marginLeft: 4,
   },
   driverVehicle: {
-    fontSize: 13,
+    fontSize: 14,
   },
   driverActions: {
     flexDirection: 'row',
+    gap: 8,
+  },
+  driverActionButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  restaurantCard: {
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+  },
+  restaurantHeader: {
+    flexDirection: 'row',
     gap: 12,
   },
-  addressCard: {
-    gap: 4,
+  restaurantImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
   },
-  addressLabel: {
+  restaurantInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  restaurantName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: 4,
   },
-  addressText: {
+  restaurantCuisine: {
     fontSize: 14,
+  },
+  itemsCard: {
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 16,
   },
   orderItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
-  orderItemImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
-  },
-  orderItemInfo: {
+  orderItemLeft: {
+    flexDirection: 'row',
+    gap: 12,
     flex: 1,
-    marginLeft: 12,
+  },
+  orderItemQuantity: {
+    fontSize: 15,
+    fontWeight: '600',
+    minWidth: 24,
   },
   orderItemName: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
-  orderItemQuantity: {
+  orderItemCustomizations: {
     fontSize: 13,
   },
   orderItemPrice: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
   },
-  orderDivider: {
+  itemsDivider: {
     height: 1,
-    marginVertical: 12,
+    marginVertical: 16,
   },
-  orderSummary: {
-    gap: 8,
-  },
-  orderSummaryRow: {
+  totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    marginBottom: 8,
   },
-  orderSummaryLabel: {
+  totalLabel: {
     fontSize: 15,
   },
-  orderSummaryValue: {
+  totalValue: {
     fontSize: 15,
     fontWeight: '500',
   },
-  orderSummaryTotal: {
-    fontSize: 18,
+  totalLabelBold: {
+    fontSize: 16,
     fontWeight: '700',
   },
-  helpButton: {
+  totalValueBold: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  addressCard: {
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+  },
+  addressContent: {
     flexDirection: 'row',
-    alignItems: 'center',
     gap: 12,
   },
-  helpButtonText: {
+  addressText: {
     flex: 1,
+  },
+  addressLabel: {
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  addressStreet: {
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  addressCity: {
+    fontSize: 14,
+  },
+  actions: {
+    marginTop: 8,
   },
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 32,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '600',
     marginTop: 16,
   },
 });

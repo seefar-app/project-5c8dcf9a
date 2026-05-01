@@ -50,7 +50,11 @@ export default function CheckoutScreen() {
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
+    if (selectedRestaurant) {
+      router.push(`/restaurant/${selectedRestaurant.id}`);
+    } else {
+      router.push('/(tabs)');
+    }
   };
 
   const handleApplyPromo = () => {
@@ -321,9 +325,9 @@ export default function CheckoutScreen() {
               <Button
                 title="Apply"
                 onPress={handleApplyPromo}
+                size="sm"
                 loading={isApplyingPromo}
-                disabled={!promoCode.trim()}
-                size="md"
+                disabled={!promoCode.trim() || isApplyingPromo}
               />
             </View>
           )}
@@ -335,24 +339,28 @@ export default function CheckoutScreen() {
             <Ionicons name="receipt" size={20} color={theme.primary} />
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Order Summary</Text>
           </View>
+          
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>Subtotal</Text>
             <Text style={[styles.summaryValue, { color: theme.text }]}>
               ${totals.subtotal.toFixed(2)}
             </Text>
           </View>
+
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>Delivery Fee</Text>
             <Text style={[styles.summaryValue, { color: theme.text }]}>
               ${totals.deliveryFee.toFixed(2)}
             </Text>
           </View>
+
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>Tax</Text>
             <Text style={[styles.summaryValue, { color: theme.text }]}>
               ${totals.tax.toFixed(2)}
             </Text>
           </View>
+
           {totals.discount > 0 && (
             <View style={styles.summaryRow}>
               <Text style={[styles.summaryLabel, { color: theme.primary }]}>Discount</Text>
@@ -361,32 +369,32 @@ export default function CheckoutScreen() {
               </Text>
             </View>
           )}
+
           <View style={[styles.summaryDivider, { backgroundColor: theme.border }]} />
+
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryTotal, { color: theme.text }]}>Total</Text>
-            <Text style={[styles.summaryTotal, { color: theme.text }]}>
+            <Text style={[styles.summaryTotal, { color: theme.primary }]}>
               ${totals.total.toFixed(2)}
             </Text>
           </View>
         </View>
       </ScrollView>
 
-      {/* Place Order Button */}
+      {/* Footer */}
       <View
         style={[
           styles.footer,
-          {
-            paddingBottom: insets.bottom + 16,
-            backgroundColor: theme.card,
-          },
-          Shadows.lg,
+          { paddingBottom: insets.bottom + 16, backgroundColor: theme.card },
         ]}
       >
         <Button
           title={`Place Order • $${totals.total.toFixed(2)}`}
           onPress={handlePlaceOrder}
-          loading={isPlacingOrder}
           size="lg"
+          fullWidth
+          loading={isPlacingOrder}
+          disabled={isPlacingOrder}
         />
       </View>
     </View>
@@ -403,6 +411,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
   },
   backButton: {
     width: 40,
@@ -411,7 +421,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
   },
   scrollView: {
@@ -419,6 +429,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    gap: 16,
   },
   section: {
     borderRadius: 16,
@@ -428,13 +439,13 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
     gap: 8,
+    marginBottom: 12,
   },
   sectionTitle: {
+    flex: 1,
     fontSize: 16,
     fontWeight: '700',
-    flex: 1,
   },
   restaurantCuisine: {
     fontSize: 14,
@@ -467,7 +478,7 @@ const styles = StyleSheet.create({
   },
   addressText: {
     fontSize: 14,
-    marginBottom: 4,
+    lineHeight: 20,
   },
   noDataText: {
     fontSize: 14,

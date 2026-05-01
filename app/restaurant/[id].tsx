@@ -69,7 +69,7 @@ export default function RestaurantDetailScreen() {
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
+    router.push('/(tabs)');
   };
 
   const handleFavorite = () => {
@@ -331,12 +331,6 @@ export default function RestaurantDetailScreen() {
                   >
                     {category.name}
                   </Text>
-                  <Badge
-                    label={category.items.length.toString()}
-                    variant={selectedCategory === category.id ? 'secondary' : 'default'}
-                    size="sm"
-                    style={{ marginLeft: 8 }}
-                  />
                 </Pressable>
               ))}
             </ScrollView>
@@ -344,121 +338,28 @@ export default function RestaurantDetailScreen() {
         )}
 
         {/* Menu Items */}
-        <View style={styles.menuContainer}>
-          {selectedRestaurant.menu
-            ?.filter((cat) => !selectedCategory || cat.id === selectedCategory)
-            .map((category: MenuCategory) => (
-              <View key={category.id} style={styles.menuSection}>
-                <Text style={[styles.menuSectionTitle, { color: theme.text }]}>
-                  {category.name}
-                </Text>
-                {category.items.map((item: MenuItem) => (
-                  <MenuItemCard
-                    key={item.id}
-                    item={item}
-                    onPress={() => handleMenuItemPress(item)}
-                  />
-                ))}
-              </View>
-            ))}
-        </View>
-
-        {/* Restaurant Details Section */}
-        <View style={[styles.detailsSection, { backgroundColor: theme.card }]}>
-          <Text style={[styles.detailsSectionTitle, { color: theme.text }]}>
-            Restaurant Information
-          </Text>
-          
-          <View style={styles.detailRow}>
-            <Ionicons name="location" size={20} color={theme.primary} />
-            <View style={styles.detailContent}>
-              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                Address
-              </Text>
-              <Text style={[styles.detailValue, { color: theme.text }]}>
-                {selectedRestaurant.location.address}
-              </Text>
-            </View>
+        {selectedRestaurant.menu && selectedRestaurant.menu.length > 0 && (
+          <View style={styles.menuContainer}>
+            {selectedRestaurant.menu
+              .filter((category: MenuCategory) => category.id === selectedCategory)
+              .map((category: MenuCategory) => (
+                <View key={category.id}>
+                  {category.items.map((item: MenuItem) => (
+                    <MenuItemCard
+                      key={item.id}
+                      item={item}
+                      onPress={() => handleMenuItemPress(item)}
+                    />
+                  ))}
+                </View>
+              ))}
           </View>
-
-          <View style={styles.detailRow}>
-            <Ionicons name="time" size={20} color={theme.primary} />
-            <View style={styles.detailContent}>
-              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                Hours
-              </Text>
-              <Text style={[styles.detailValue, { color: theme.text }]}>
-                {selectedRestaurant.hours}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Ionicons name="call" size={20} color={theme.primary} />
-            <View style={styles.detailContent}>
-              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                Contact
-              </Text>
-              <Text style={[styles.detailValue, { color: theme.text }]}>
-                Call restaurant
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Reviews Section */}
-        <View style={[styles.reviewsSection, { backgroundColor: theme.card }]}>
-          <View style={styles.reviewsHeader}>
-            <Text style={[styles.reviewsSectionTitle, { color: theme.text }]}>
-              Reviews
-            </Text>
-            <Pressable>
-              <Text style={[styles.seeAllText, { color: theme.primary }]}>
-                See all
-              </Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.reviewsStats}>
-            <View style={styles.reviewsRating}>
-              <Text style={[styles.reviewsRatingNumber, { color: theme.text }]}>
-                {selectedRestaurant.rating}
-              </Text>
-              <View style={styles.reviewsStars}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Ionicons
-                    key={star}
-                    name={star <= Math.floor(selectedRestaurant.rating) ? 'star' : 'star-outline'}
-                    size={16}
-                    color="#f59e0b"
-                  />
-                ))}
-              </View>
-              <Text style={[styles.reviewsCount, { color: theme.textSecondary }]}>
-                {selectedRestaurant.reviewCount} reviews
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.reviewPlaceholder}>
-            <Ionicons name="chatbubbles-outline" size={32} color={theme.textTertiary} />
-            <Text style={[styles.reviewPlaceholderText, { color: theme.textSecondary }]}>
-              Be the first to review this restaurant
-            </Text>
-          </View>
-        </View>
+        )}
       </Animated.ScrollView>
 
       {/* Floating Cart Button */}
       {cartItemCount > 0 && (
-        <View
-          style={[
-            styles.cartButton,
-            {
-              paddingBottom: insets.bottom + 16,
-            },
-          ]}
-        >
+        <View style={[styles.cartButton, { paddingBottom: insets.bottom }]}>
           <Pressable
             onPress={handleViewCart}
             style={[styles.cartButtonContent, { backgroundColor: theme.primary }]}
@@ -480,7 +381,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   loadingHeader: {
-    width: '100%',
     height: HEADER_HEIGHT,
   },
   loadingContent: {
@@ -500,10 +400,10 @@ const styles = StyleSheet.create({
   },
   headerGradient: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
-    height: 120,
+    bottom: 0,
+    height: HEADER_HEIGHT / 2,
   },
   topBar: {
     position: 'absolute',
@@ -511,13 +411,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
-    overflow: 'hidden',
   },
   topBarContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingVertical: 8,
   },
   topBarButton: {
     width: 40,
@@ -534,7 +434,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: '700',
-    marginHorizontal: 16,
+    marginHorizontal: 12,
   },
   topBarActions: {
     flexDirection: 'row',
@@ -566,7 +466,6 @@ const styles = StyleSheet.create({
   },
   infoHeaderLeft: {
     flex: 1,
-    marginRight: 12,
   },
   restaurantName: {
     fontSize: 24,
@@ -579,21 +478,19 @@ const styles = StyleSheet.create({
   infoStats: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    paddingBottom: 16,
   },
   infoStat: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    gap: 4,
   },
   infoStatText: {
     fontSize: 15,
     fontWeight: '600',
-    marginLeft: 6,
   },
   infoStatLabel: {
-    fontSize: 14,
-    marginLeft: 2,
+    fontSize: 13,
   },
   infoDivider: {
     width: 1,
@@ -602,131 +499,49 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
   infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     paddingTop: 16,
-    gap: 12,
+    marginBottom: 12,
   },
   infoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    gap: 6,
   },
   infoItemText: {
     fontSize: 14,
-    marginLeft: 8,
   },
   minimumOrder: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
     padding: 12,
     borderRadius: 12,
-    marginTop: 12,
   },
   minimumOrderText: {
     fontSize: 14,
     fontWeight: '600',
-    marginLeft: 8,
   },
   categoriesContainer: {
     marginBottom: 20,
   },
   categoriesScroll: {
     paddingRight: 16,
+    gap: 8,
   },
   categoryTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
-    marginRight: 12,
+    marginRight: 8,
   },
   categoryTabText: {
     fontSize: 15,
     fontWeight: '600',
   },
   menuContainer: {
-    marginBottom: 20,
-  },
-  menuSection: {
-    marginBottom: 24,
-  },
-  menuSectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  detailsSection: {
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-  },
-  detailsSectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  detailContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  detailLabel: {
-    fontSize: 13,
-    marginBottom: 2,
-  },
-  detailValue: {
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  reviewsSection: {
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 20,
-  },
-  reviewsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  reviewsSectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  seeAllText: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  reviewsStats: {
-    marginBottom: 20,
-  },
-  reviewsRating: {
-    alignItems: 'center',
-  },
-  reviewsRatingNumber: {
-    fontSize: 48,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  reviewsStars: {
-    flexDirection: 'row',
-    gap: 4,
-    marginBottom: 8,
-  },
-  reviewsCount: {
-    fontSize: 14,
-  },
-  reviewPlaceholder: {
-    alignItems: 'center',
-    paddingVertical: 24,
-  },
-  reviewPlaceholderText: {
-    fontSize: 14,
-    marginTop: 12,
+    gap: 12,
   },
   cartButton: {
     position: 'absolute',

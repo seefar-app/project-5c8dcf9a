@@ -93,7 +93,7 @@ export default function EditProfileScreen() {
     Alert.alert('Success', 'Your profile has been updated.', [
       {
         text: 'OK',
-        onPress: () => router.back(),
+        onPress: () => router.push('/(tabs)/profile'),
       },
     ]);
   };
@@ -116,12 +116,12 @@ export default function EditProfileScreen() {
           {
             text: 'Discard',
             style: 'destructive',
-            onPress: () => router.back(),
+            onPress: () => router.push('/(tabs)/profile'),
           },
         ]
       );
     } else {
-      router.back();
+      router.push('/(tabs)/profile');
     }
   };
 
