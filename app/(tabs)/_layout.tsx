@@ -3,10 +3,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { View, StyleSheet } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useStore } from '@/store/useStore';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function TabLayout() {
   const theme = useTheme();
   const { cart } = useStore();
+  const { t } = useTranslation();
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -32,7 +34,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: t('tabs.home'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'home' : 'home-outline'}
@@ -45,7 +47,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="orders"
         options={{
-          title: 'Orders',
+          title: t('tabs.orders'),
           tabBarIcon: ({ color, focused }) => (
             <View>
               <Ionicons
@@ -65,7 +67,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('tabs.profile'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'person' : 'person-outline'}

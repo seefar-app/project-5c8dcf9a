@@ -8,7 +8,7 @@
     "stateManagement": "Zustand + React Query"
   },
   "files": {
-    "package.json": "json",
+    "package.json": "(modified this turn)",
     "app.json": "json",
     "tsconfig.json": "json",
     "expo-env.d.ts": "ts",
@@ -37,19 +37,22 @@
     "components/shared/MenuItemCard.tsx": "tsx",
     "components/shared/OrderCard.tsx": "tsx",
     "components/shared/CartItem.tsx": "tsx",
-    "app/_layout.tsx": "tsx",
-    "app/index.tsx": "tsx",
+    "app/_layout.tsx": "(modified this turn)",
+    "app/index.tsx": "(modified this turn)",
     "app/(auth)/_layout.tsx": "tsx",
-    "app/(auth)/login.tsx": "tsx",
+    "app/(auth)/login.tsx": "(modified this turn)",
     "app/(auth)/signup.tsx": "tsx",
-    "app/(tabs)/_layout.tsx": "tsx",
+    "app/(tabs)/_layout.tsx": "(modified this turn)",
     "app/(tabs)/index.tsx": "tsx",
     "app/(tabs)/orders.tsx": "tsx",
     "app/(tabs)/profile.tsx": "(modified this turn)",
     "app/restaurant/[id].tsx": "(modified this turn)",
     "app/checkout.tsx": "(modified this turn)",
     "app/order/[id].tsx": "(modified this turn)",
-    "app/edit-profile.tsx": "(modified this turn)"
+    "app/edit-profile.tsx": "(modified this turn)",
+    "i18n/translations.ts": "(modified this turn)",
+    "store/useLanguageStore.ts": "(modified this turn)",
+    "hooks/useTranslation.ts": "(modified this turn)"
   },
   "decisions": [],
   "knownIssues": [],
@@ -94,11 +97,15 @@
     {
       "summary": "buttons in edit profile is empty... → 1 files written, 5 reasoning rounds",
       "timestamp": "2026-05-01T01:09:42.640Z"
+    },
+    {
+      "summary": "add arabic and Franch language... → 9 files written, 20 reasoning rounds",
+      "timestamp": "2026-05-01T01:18:15.729Z"
     }
   ],
   "metadata": {
     "createdAt": "2026-05-01T00:38:46.481Z",
-    "lastUpdated": "2026-05-01T01:09:42.640Z",
+    "lastUpdated": "2026-05-01T01:18:15.730Z",
     "projectName": "project-5c8dcf9a",
     "platform": "react-native",
     "originalPrompt": "create a food delivery app ",

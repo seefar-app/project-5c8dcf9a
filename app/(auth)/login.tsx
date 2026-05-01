@@ -18,12 +18,14 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function LoginScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { login, isLoading, authError } = useAuthStore();
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -93,9 +95,11 @@ export default function LoginScreen() {
             <View style={[styles.logoCircle, { backgroundColor: theme.primaryLightest }]}>
               <Ionicons name="leaf" size={32} color={theme.primary} />
             </View>
-            <Text style={[styles.title, { color: theme.text }]}>Welcome Back!</Text>
+            <Text style={[styles.title, { color: theme.text }]}>
+              {t('auth.login')}!
+            </Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              Sign in to continue ordering
+              {t('onboarding.subtitle')}
             </Text>
           </View>
 
@@ -119,15 +123,17 @@ export default function LoginScreen() {
 
           <View style={styles.dividerContainer}>
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
-            <Text style={[styles.dividerText, { color: theme.textTertiary }]}>or</Text>
+            <Text style={[styles.dividerText, { color: theme.textTertiary }]}>
+              {t('auth.orContinueWith')}
+            </Text>
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
           </View>
 
           {/* Form */}
           <View style={styles.form}>
             <Input
-              label="Email"
-              placeholder="Enter your email"
+              label={t('auth.email')}
+              placeholder={t('auth.email')}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -135,8 +141,8 @@ export default function LoginScreen() {
               leftIcon="mail-outline"
             />
             <Input
-              label="Password"
-              placeholder="Enter your password"
+              label={t('auth.password')}
+              placeholder={t('auth.password')}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -145,7 +151,7 @@ export default function LoginScreen() {
 
             <Pressable style={styles.forgotPassword}>
               <Text style={[styles.forgotText, { color: theme.primary }]}>
-                Forgot Password?
+                {t('auth.forgotPassword')}
               </Text>
             </Pressable>
 
@@ -157,7 +163,7 @@ export default function LoginScreen() {
             )}
 
             <Button
-              title="Sign In"
+              title={t('auth.login')}
               onPress={handleLogin}
               loading={isLoading}
               disabled={!email || !password}
@@ -169,10 +175,12 @@ export default function LoginScreen() {
           {/* Sign Up Link */}
           <View style={styles.signupContainer}>
             <Text style={[styles.signupText, { color: theme.textSecondary }]}>
-              Don't have an account?{' '}
+              {t('auth.dontHaveAccount')}{' '}
             </Text>
             <Pressable onPress={() => router.push('/(auth)/signup')}>
-              <Text style={[styles.signupLink, { color: theme.primary }]}>Sign Up</Text>
+              <Text style={[styles.signupLink, { color: theme.primary }]}>
+                {t('auth.signup')}
+              </Text>
             </Pressable>
           </View>
         </Animated.View>
@@ -219,6 +227,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
+    textAlign: 'center',
   },
   socialContainer: {
     flexDirection: 'row',

@@ -2,11 +2,12 @@ import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, I18nManager } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
 import { useRouter, useSegments } from 'expo-router';
 import '../global.css';
 
@@ -47,6 +48,15 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const { isRTL } = useLanguageStore();
+
+  useEffect(() => {
+    // Set RTL layout
+    if (I18nManager.isRTL !== isRTL) {
+      I18nManager.forceRTL(isRTL);
+      I18nManager.allowRTL(isRTL);
+    }
+  }, [isRTL]);
 
   useEffect(() => {
     SplashScreen.hideAsync();
@@ -85,6 +95,13 @@ export default function RootLayout() {
             options={{
               presentation: 'modal',
               animation: 'slide_from_bottom',
+            }}
+          />
+          <Stack.Screen
+            name="edit-profile"
+            options={{
+              presentation: 'card',
+              animation: 'slide_from_right',
             }}
           />
         </Stack>

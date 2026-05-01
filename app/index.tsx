@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const { width, height } = Dimensions.get('window');
 
@@ -14,6 +15,7 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isAuthenticated } = useAuthStore();
+  const { t } = useTranslation();
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -89,7 +91,7 @@ export default function OnboardingScreen() {
                 <Ionicons name="leaf" size={48} color="#ffffff" />
               </View>
               <Text style={styles.brandName}>Forest Eats</Text>
-              <Text style={styles.tagline}>Fresh food, naturally delivered</Text>
+              <Text style={styles.tagline}>{t('onboarding.subtitle')}</Text>
             </Animated.View>
 
             {/* Features */}
@@ -107,13 +109,13 @@ export default function OnboardingScreen() {
                   <View style={styles.featureIcon}>
                     <Ionicons name="restaurant" size={24} color="#10b981" />
                   </View>
-                  <Text style={styles.featureText}>500+ Restaurants</Text>
+                  <Text style={styles.featureText}>500+ {t('home.nearbyRestaurants')}</Text>
                 </View>
                 <View style={styles.featureItem}>
                   <View style={styles.featureIcon}>
                     <Ionicons name="time" size={24} color="#10b981" />
                   </View>
-                  <Text style={styles.featureText}>Fast Delivery</Text>
+                  <Text style={styles.featureText}>{t('home.fastDelivery')}</Text>
                 </View>
               </View>
               <View style={styles.featureRow}>
@@ -143,7 +145,7 @@ export default function OnboardingScreen() {
               ]}
             >
               <Button
-                title="Get Started"
+                title={t('onboarding.getStarted')}
                 onPress={handleGetStarted}
                 variant="primary"
                 size="lg"
@@ -154,7 +156,7 @@ export default function OnboardingScreen() {
               
               <Pressable onPress={handleSignUp} style={styles.signupLink}>
                 <Text style={styles.signupText}>
-                  Don't have an account? <Text style={styles.signupTextBold}>Sign up</Text>
+                  {t('auth.dontHaveAccount')} <Text style={styles.signupTextBold}>{t('auth.signup')}</Text>
                 </Text>
               </Pressable>
             </Animated.View>
@@ -210,6 +212,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'rgba(255,255,255,0.8)',
     fontWeight: '500',
+    textAlign: 'center',
   },
   featuresContainer: {
     marginVertical: 40,

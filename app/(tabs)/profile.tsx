@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   Alert,
+  Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,9 +15,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { useTranslation } from '@/hooks/useTranslation';
 import { Avatar } from '@/components/ui/Avatar';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Language } from '@/i18n/translations';
 
 interface MenuItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -53,20 +58,115 @@ function MenuItem({ icon, label, value, badge, onPress, destructive }: MenuItemP
   );
 }
 
+function LanguageModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const theme = useTheme();
+  const { language, setLanguage } = useLanguageStore();
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+
+  const languages: { code: Language; name: string; nativeName: string }[] = [
+    { code: 'en', name: 'English', nativeName: 'English' },
+    { code: 'ar', name: 'Arabic', nativeName: 'العربية' },
+    { code: 'fr', name: 'French', nativeName: 'Français' },
+  ];
+
+  const handleSelectLanguage = (lang: Language) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLanguage(lang);
+    setTimeout(() => {
+      onClose();
+      Alert.alert(
+        t('common.done'),
+        'Language changed. Please restart the app for full effect.',
+        [{ text: 'OK' }]
+      );
+    }, 300);
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <Pressable style={styles.modalBackdrop} onPress={onClose} />
+        <View
+          style={[
+            styles.modalContent,
+            { backgroundColor: theme.background, paddingBottom: insets.bottom + 20 },
+          ]}
+        >
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>
+              {t('profile.language')}
+            </Text>
+            <Pressable onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color={theme.textSecondary} />
+            </Pressable>
+          </View>
+
+          <View style={styles.languageList}>
+            {languages.map((lang) => (
+              <Pressable
+                key={lang.code}
+                onPress={() => handleSelectLanguage(lang.code)}
+                style={({ pressed }) => [
+                  styles.languageItem,
+                  {
+                    backgroundColor: pressed ? theme.backgroundSecondary : 'transparent',
+                  },
+                ]}
+              >
+                <View style={styles.languageInfo}>
+                  <Text style={[styles.languageName, { color: theme.text }]}>
+                    {lang.nativeName}
+                  </Text>
+                  <Text style={[styles.languageSubname, { color: theme.textSecondary }]}>
+                    {lang.name}
+                  </Text>
+                </View>
+                {language === lang.code && (
+                  <Ionicons name="checkmark-circle" size={24} color={theme.primary} />
+                )}
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { user, logout } = useAuthStore();
+  const { language } = useLanguageStore();
+  const { t } = useTranslation();
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+
+  const getLanguageName = () => {
+    switch (language) {
+      case 'ar':
+        return 'العربية';
+      case 'fr':
+        return 'Français';
+      default:
+        return 'English';
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
+      t('profile.logout'),
+      t('profile.logoutConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Sign Out',
+          text: t('profile.logout'),
           style: 'destructive',
           onPress: () => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -85,151 +185,168 @@ export default function ProfileScreen() {
       case 'edit-profile':
         router.push('/edit-profile');
         break;
+      case 'language':
+        setShowLanguageModal(true);
+        break;
       default:
-        // Navigation would go here for other items
         console.log(`Navigate to ${item}`);
         break;
     }
   };
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: theme.background }]}
-      contentContainerStyle={{ paddingBottom: 100 }}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Profile Header */}
-      <LinearGradient
-        colors={['#059669', '#10b981', '#34d399']}
-        style={[styles.header, { paddingTop: insets.top + 20 }]}
+    <>
+      <ScrollView
+        style={[styles.container, { backgroundColor: theme.background }]}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.profileSection}>
-          <Avatar source={user?.avatar} name={user?.name} size="xl" />
-          <Text style={styles.userName}>{user?.name || 'Guest User'}</Text>
-          <Text style={styles.userEmail}>{user?.email || 'guest@example.com'}</Text>
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{user?.totalOrders || 0}</Text>
-              <Text style={styles.statLabel}>Orders</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>⭐ 4.9</Text>
-              <Text style={styles.statLabel}>Rating</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>${(user?.totalOrders || 0) * 25}</Text>
-              <Text style={styles.statLabel}>Spent</Text>
+        {/* Profile Header */}
+        <LinearGradient
+          colors={['#059669', '#10b981', '#34d399']}
+          style={[styles.header, { paddingTop: insets.top + 20 }]}
+        >
+          <View style={styles.profileSection}>
+            <Avatar source={user?.avatar} name={user?.name} size="xl" />
+            <Text style={styles.userName}>{user?.name || 'Guest User'}</Text>
+            <Text style={styles.userEmail}>{user?.email || 'guest@example.com'}</Text>
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{user?.totalOrders || 0}</Text>
+                <Text style={styles.statLabel}>{t('orders.title')}</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>⭐ 4.9</Text>
+                <Text style={styles.statLabel}>{t('home.rating')}</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>${(user?.totalOrders || 0) * 25}</Text>
+                <Text style={styles.statLabel}>Spent</Text>
+              </View>
             </View>
           </View>
+        </LinearGradient>
+
+        {/* Menu Sections */}
+        <View style={styles.menuContainer}>
+          {/* Account Section */}
+          <Card variant="default" padding="none" style={styles.menuCard}>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+              {t('profile.myAccount')}
+            </Text>
+            <MenuItem
+              icon="person-outline"
+              label={t('profile.editProfile')}
+              onPress={() => handleMenuPress('edit-profile')}
+            />
+            <MenuItem
+              icon="location-outline"
+              label={t('profile.addresses')}
+              value={`${user?.addresses.length || 0} saved`}
+              onPress={() => handleMenuPress('addresses')}
+            />
+            <MenuItem
+              icon="card-outline"
+              label={t('profile.paymentMethods')}
+              value={`${user?.paymentMethods.length || 0} cards`}
+              onPress={() => handleMenuPress('payments')}
+            />
+          </Card>
+
+          {/* Orders Section */}
+          <Card variant="default" padding="none" style={styles.menuCard}>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+              {t('orders.title')}
+            </Text>
+            <MenuItem
+              icon="heart-outline"
+              label={t('profile.favorites')}
+              badge="12"
+              onPress={() => handleMenuPress('favorites')}
+            />
+            <MenuItem
+              icon="receipt-outline"
+              label={t('orders.history')}
+              onPress={() => handleMenuPress('history')}
+            />
+            <MenuItem
+              icon="gift-outline"
+              label={t('cart.promoCode')}
+              badge="2"
+              onPress={() => handleMenuPress('promos')}
+            />
+          </Card>
+
+          {/* Settings Section */}
+          <Card variant="default" padding="none" style={styles.menuCard}>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+              {t('profile.settings')}
+            </Text>
+            <MenuItem
+              icon="notifications-outline"
+              label={t('profile.notifications')}
+              onPress={() => handleMenuPress('notifications')}
+            />
+            <MenuItem
+              icon="language-outline"
+              label={t('profile.language')}
+              value={getLanguageName()}
+              onPress={() => handleMenuPress('language')}
+            />
+            <MenuItem
+              icon="moon-outline"
+              label="Appearance"
+              value="System"
+              onPress={() => handleMenuPress('appearance')}
+            />
+          </Card>
+
+          {/* Support Section */}
+          <Card variant="default" padding="none" style={styles.menuCard}>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+              {t('profile.helpSupport')}
+            </Text>
+            <MenuItem
+              icon="help-circle-outline"
+              label="Help Center"
+              onPress={() => handleMenuPress('help')}
+            />
+            <MenuItem
+              icon="chatbubble-outline"
+              label="Contact Us"
+              onPress={() => handleMenuPress('contact')}
+            />
+            <MenuItem
+              icon="document-text-outline"
+              label="Terms & Privacy"
+              onPress={() => handleMenuPress('terms')}
+            />
+          </Card>
+
+          {/* Logout */}
+          <Card variant="default" padding="none" style={styles.menuCard}>
+            <MenuItem
+              icon="log-out-outline"
+              label={t('profile.logout')}
+              onPress={handleLogout}
+              destructive
+            />
+          </Card>
+
+          {/* App Version */}
+          <Text style={[styles.version, { color: theme.textTertiary }]}>
+            Forest Eats {t('profile.version')} 1.0.0
+          </Text>
         </View>
-      </LinearGradient>
+      </ScrollView>
 
-      {/* Menu Sections */}
-      <View style={styles.menuContainer}>
-        {/* Account Section */}
-        <Card variant="default" padding="none" style={styles.menuCard}>
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Account</Text>
-          <MenuItem
-            icon="person-outline"
-            label="Edit Profile"
-            onPress={() => handleMenuPress('edit-profile')}
-          />
-          <MenuItem
-            icon="location-outline"
-            label="Delivery Addresses"
-            value={`${user?.addresses.length || 0} saved`}
-            onPress={() => handleMenuPress('addresses')}
-          />
-          <MenuItem
-            icon="card-outline"
-            label="Payment Methods"
-            value={`${user?.paymentMethods.length || 0} cards`}
-            onPress={() => handleMenuPress('payments')}
-          />
-        </Card>
-
-        {/* Orders Section */}
-        <Card variant="default" padding="none" style={styles.menuCard}>
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Orders</Text>
-          <MenuItem
-            icon="heart-outline"
-            label="Favorites"
-            badge="12"
-            onPress={() => handleMenuPress('favorites')}
-          />
-          <MenuItem
-            icon="receipt-outline"
-            label="Order History"
-            onPress={() => handleMenuPress('history')}
-          />
-          <MenuItem
-            icon="gift-outline"
-            label="Promo Codes"
-            badge="2"
-            onPress={() => handleMenuPress('promos')}
-          />
-        </Card>
-
-        {/* Settings Section */}
-        <Card variant="default" padding="none" style={styles.menuCard}>
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Settings</Text>
-          <MenuItem
-            icon="notifications-outline"
-            label="Notifications"
-            onPress={() => handleMenuPress('notifications')}
-          />
-          <MenuItem
-            icon="language-outline"
-            label="Language"
-            value="English"
-            onPress={() => handleMenuPress('language')}
-          />
-          <MenuItem
-            icon="moon-outline"
-            label="Appearance"
-            value="System"
-            onPress={() => handleMenuPress('appearance')}
-          />
-        </Card>
-
-        {/* Support Section */}
-        <Card variant="default" padding="none" style={styles.menuCard}>
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Support</Text>
-          <MenuItem
-            icon="help-circle-outline"
-            label="Help Center"
-            onPress={() => handleMenuPress('help')}
-          />
-          <MenuItem
-            icon="chatbubble-outline"
-            label="Contact Us"
-            onPress={() => handleMenuPress('contact')}
-          />
-          <MenuItem
-            icon="document-text-outline"
-            label="Terms & Privacy"
-            onPress={() => handleMenuPress('terms')}
-          />
-        </Card>
-
-        {/* Logout */}
-        <Card variant="default" padding="none" style={styles.menuCard}>
-          <MenuItem
-            icon="log-out-outline"
-            label="Sign Out"
-            onPress={handleLogout}
-            destructive
-          />
-        </Card>
-
-        {/* App Version */}
-        <Text style={[styles.version, { color: theme.textTertiary }]}>
-          Forest Eats v1.0.0
-        </Text>
-      </View>
-    </ScrollView>
+      <LanguageModal
+        visible={showLanguageModal}
+        onClose={() => setShowLanguageModal(false)}
+      />
+    </>
   );
 }
 
@@ -328,5 +445,55 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 13,
     marginTop: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  languageList: {
+    paddingHorizontal: 20,
+  },
+  languageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  languageInfo: {
+    flex: 1,
+  },
+  languageName: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  languageSubname: {
+    fontSize: 14,
   },
 });
