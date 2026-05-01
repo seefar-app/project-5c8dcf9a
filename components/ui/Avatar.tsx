@@ -6,7 +6,7 @@ import { useTheme } from '@/hooks/useTheme';
 interface AvatarProps {
   source?: string | null;
   name?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   showStatus?: boolean;
   isOnline?: boolean;
   style?: ViewStyle;
@@ -30,6 +30,8 @@ export function Avatar({
         return 56;
       case 'xl':
         return 80;
+      case '2xl':
+        return 120;
       default:
         return 44;
     }
@@ -43,6 +45,8 @@ export function Avatar({
         return 20;
       case 'xl':
         return 28;
+      case '2xl':
+        return 40;
       default:
         return 16;
     }

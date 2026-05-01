@@ -80,8 +80,16 @@ export default function ProfileScreen() {
 
   const handleMenuPress = (item: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // Navigation would go here
-    console.log(`Navigate to ${item}`);
+    
+    switch (item) {
+      case 'edit-profile':
+        router.push('/edit-profile');
+        break;
+      default:
+        // Navigation would go here for other items
+        console.log(`Navigate to ${item}`);
+        break;
+    }
   };
 
   return (
