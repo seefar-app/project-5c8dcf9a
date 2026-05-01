@@ -45,7 +45,10 @@
     "app/(tabs)/_layout.tsx": "tsx",
     "app/(tabs)/index.tsx": "tsx",
     "app/(tabs)/orders.tsx": "tsx",
-    "app/(tabs)/profile.tsx": "tsx"
+    "app/(tabs)/profile.tsx": "tsx",
+    "app/restaurant/[id].tsx": "(modified this turn)",
+    "app/checkout.tsx": "(modified this turn)",
+    "app/order/[id].tsx": "(modified this turn)"
   },
   "decisions": [],
   "knownIssues": [],
@@ -70,11 +73,15 @@
     {
       "summary": "Initial generation: project-5c8dcf9a — create a food delivery app ",
       "timestamp": "2026-05-01T00:38:46.481Z"
+    },
+    {
+      "summary": "add restaurant details... → 3 files written, 15 reasoning rounds",
+      "timestamp": "2026-05-01T00:46:41.272Z"
     }
   ],
   "metadata": {
     "createdAt": "2026-05-01T00:38:46.481Z",
-    "lastUpdated": "2026-05-01T00:38:46.481Z",
+    "lastUpdated": "2026-05-01T00:46:41.273Z",
     "projectName": "project-5c8dcf9a",
     "platform": "react-native",
     "originalPrompt": "create a food delivery app ",
