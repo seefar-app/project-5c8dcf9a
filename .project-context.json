@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "architecture": {
+    "framework": "Expo (React Native)",
+    "sdkVersion": "~54.0.30",
+    "navigation": "tabs",
+    "styling": "NativeWind (Tailwind CSS)",
+    "stateManagement": "Zustand + React Query"
+  },
+  "files": {
+    "package.json": "json",
+    "app.json": "json",
+    "tsconfig.json": "json",
+    "expo-env.d.ts": "ts",
+    "nativewind-env.d.ts": "ts",
+    "tailwind.config.js": "js",
+    "global.css": "css",
+    "types/index.ts": "ts",
+    "constants/Colors.ts": "ts",
+    "hooks/useColorScheme.ts": "ts",
+    "hooks/useTheme.ts": "ts",
+    "hooks/useLocation.ts": "ts",
+    "store/useAuthStore.ts": "ts",
+    "store/useStore.ts": "ts",
+    "components/ui/ThemedView.tsx": "tsx",
+    "components/ui/ThemedText.tsx": "tsx",
+    "components/ui/Button.tsx": "tsx",
+    "components/ui/Card.tsx": "tsx",
+    "components/ui/Input.tsx": "tsx",
+    "components/ui/Avatar.tsx": "tsx",
+    "components/ui/Badge.tsx": "tsx",
+    "components/ui/Skeleton.tsx": "tsx",
+    "components/shared/StatusIndicator.tsx": "tsx",
+    "components/shared/LocationInput.tsx": "tsx",
+    "components/shared/MapCard.tsx": "tsx",
+    "components/shared/RestaurantCard.tsx": "tsx",
+    "components/shared/MenuItemCard.tsx": "tsx",
+    "components/shared/OrderCard.tsx": "tsx",
+    "components/shared/CartItem.tsx": "tsx",
+    "app/_layout.tsx": "tsx",
+    "app/index.tsx": "tsx",
+    "app/(auth)/_layout.tsx": "tsx",
+    "app/(auth)/login.tsx": "tsx",
+    "app/(auth)/signup.tsx": "tsx",
+    "app/(tabs)/_layout.tsx": "tsx",
+    "app/(tabs)/index.tsx": "tsx",
+    "app/(tabs)/orders.tsx": "tsx",
+    "app/(tabs)/profile.tsx": "tsx"
+  },
+  "decisions": [],
+  "knownIssues": [],
+  "designTokens": {
+    "theme": "Forest Dreams",
+    "style": "nature-organic",
+    "mood": "natural, sustainable, peaceful",
+    "colors": {
+      "primary": "emerald-600",
+      "secondary": "lime-50",
+      "accent": "amber-500",
+      "background": "white"
+    },
+    "gradients": [
+      "#059669",
+      "#10b981",
+      "#34d399"
+    ]
+  },
+  "dependencies": {},
+  "conversationLog": [
+    {
+      "summary": "Initial generation: project-5c8dcf9a — create a food delivery app ",
+      "timestamp": "2026-05-01T00:38:46.481Z"
+    }
+  ],
+  "metadata": {
+    "createdAt": "2026-05-01T00:38:46.481Z",
+    "lastUpdated": "2026-05-01T00:38:46.481Z",
+    "projectName": "project-5c8dcf9a",
+    "platform": "react-native",
+    "originalPrompt": "create a food delivery app ",
+    "generationSummary": "## project-5c8dcf9a - Production React Native App\n\n**App Type**: e-commerce (Food Delivery - DoorDash/Uber Eats style)\n**Tech Stack**: Expo SDK ~54.0.30, React Native 0.81.5\n\n### Implemented Screens\n- `app/index.tsx` — Stunning onboarding/splash with nature-inspired food delivery theme\n- `app/(auth)/_layout.tsx` — Auth stack layout\n- `app/(auth)/login.tsx` — Login with social auth and email\n- `app/(auth)/signup.tsx` — Registration with phone verification\n- `app/(tabs)/_layout.tsx` — Bottom tab navigation (Home, Orders, Profile)\n- `app/(tabs)/index.tsx` — Home with restaurant feed, search, filters, and mini map\n- `app/(tabs)/orders.tsx` — Active and past orders with status tracking\n- `app/(tabs)/profile.tsx` — User settings, addresses, payment methods, preferences\n- `app/restaurant/[id].tsx` — Restaurant detail with menu categories and items\n- `app/order/[id].tsx` — Real-time order tracking with live map and delivery status\n- `app/checkout.tsx` — Cart review, promo codes, payment method selection\n\n### Key Files & Responsibilities\n- `types/index.ts` — All TypeScript interfaces (User, Restaurant, MenuItem, Order, etc.)\n- `constants/Colors.ts` — Forest Dreams theme color system with dark mode\n- `store/useStore.ts` — Main Zustand store for restaurants, cart, orders, favorites\n- `store/useAuthStore.ts` — Authentication state, login/signup/logout actions\n- `components/ui/Button.tsx` — Multi-variant button with loading, haptic feedback\n- `components/ui/Card.tsx` — Elevated card with shadow and pressable variant\n- `components/ui/Input.tsx` — Labeled input with icons and error states\n- `components/ui/Avatar.tsx` — Image avatar with fallback initials\n- `components/ui/Badge.tsx` — Status badges with semantic colors\n- `components/ui/Skeleton.tsx` — Shimmer loading placeholders\n- `components/ui/ThemedView.tsx` — Theme-aware container\n- `components/ui/ThemedText.tsx` — Theme-aware typography\n- `components/shared/RestaurantCard.tsx` — Restaurant list item with rating, time, fee\n- `components/shared/MenuItemCard.tsx` — Menu item with customization\n- `components/shared/OrderCard.tsx` — Order summary card with status\n- `components/shared/CartItem.tsx` — Cart line item with quantity controls\n- `components/shared/StatusIndicator.tsx` — Pulsing live status dot\n- `components/shared/LocationInput.tsx` — Address input with icon\n- `components/shared/MapCard.tsx` — Mini map preview component\n- `hooks/useTheme.ts` — Theme hook for colors\n- `hooks/useColorScheme.ts` — System color scheme detection\n- `hooks/useLocation.ts` — Expo location hook\n\n### Design Tokens Applied\n- Theme: Forest Dreams (nature-organic)\n- Colors: \n  - Primary: emerald-600 (#059669)\n  - Secondary: lime-50 (#f7fee7)\n  - Accent: amber-500 (#f59e0b)\n  - Background: white (#ffffff)\n  - Gradient: ['#059669', '#10b981', '#34d399']\n- Typography: System fonts with bold headers (text-3xl), body (text-base), secondary (text-sm text-gray-500)\n- Spacing/Radius: rounded-3xl for cards, rounded-2xl for buttons, consistent p-4/p-6 spacing\n\n### Important Patterns & Conventions\n- State management: Zustand with async actions ready for Supabase\n- Navigation: Expo Router with (auth) and (tabs) groups, dynamic [id] routes\n- Styling: NativeWind (Tailwind CSS) with dark mode support\n- Data fetching/mocking: Mock data in stores with realistic food delivery data\n- Animations: React Native built-in Animated API (NO reanimated)\n- Auth guard: Root layout checks isAuthenticated and redirects appropriately\n\n### Implemented Features\n1. Beautiful onboarding with full-bleed nature food imagery\n2. Email/password authentication with error display\n3. Restaurant browsing with search and cuisine filters\n4. Restaurant detail with categorized menu items\n5. Shopping cart with quantity adjustment\n6. Promo code application\n7. Multiple payment methods (card, cash)\n8. Real-time order tracking with live map\n9. Order status progression (pending → preparing → on_the_way → delivered)\n10. Order history with reorder capability\n11. Favorites/saved restaurants\n12. Delivery address management\n13. User profile with preferences\n14. Pull-to-refresh on all lists\n15. Dark mode support throughout\n16. Haptic feedback on interactions\n17. Loading skeletons for async content\n\n### How to Run\n```bash\ncd project-5c8dcf9a\nnpm install\nnpx expo start\n```"
+  }
+}
