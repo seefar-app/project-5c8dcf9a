@@ -221,19 +221,21 @@ export default function EditProfileScreen() {
         {/* Action Buttons */}
         <View style={styles.actions}>
           <Button
-            label="Save Changes"
+            title="Save Changes"
             onPress={handleSave}
             variant="primary"
             size="lg"
             loading={isSaving}
             disabled={isSaving}
+            fullWidth
           />
           <Button
-            label="Cancel"
+            title="Cancel"
             onPress={handleCancel}
             variant="outline"
             size="lg"
             disabled={isSaving}
+            fullWidth
           />
         </View>
 
