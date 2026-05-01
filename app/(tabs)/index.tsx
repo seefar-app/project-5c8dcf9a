@@ -22,6 +22,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useStore } from '@/store/useStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLocation } from '@/hooks/useLocation';
+import { useTranslation } from '@/hooks/useTranslation';
 import { RestaurantCard } from '@/components/shared/RestaurantCard';
 import { Skeleton, SkeletonCard } from '@/components/ui/Skeleton';
 import { Avatar } from '@/components/ui/Avatar';
@@ -36,6 +37,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const {
     restaurants,
@@ -140,7 +142,7 @@ export default function HomeScreen() {
             <Ionicons name="search" size={20} color={theme.textTertiary} />
             <TextInput
               style={[styles.searchInput, { color: theme.text }]}
-              placeholder="Search restaurants or cuisines..."
+              placeholder={t('home.searchPlaceholder')}
               placeholderTextColor={theme.textTertiary}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -245,7 +247,7 @@ export default function HomeScreen() {
                 🔥 Featured Deals
               </Text>
               <Pressable>
-                <Text style={[styles.seeAll, { color: theme.primary }]}>See All</Text>
+                <Text style={[styles.seeAll, { color: theme.primary }]}>{t('common.viewAll')}</Text>
               </Pressable>
             </View>
             <FlatList
@@ -275,7 +277,7 @@ export default function HomeScreen() {
         >
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>
-              {searchQuery ? 'Search Results' : 'All Restaurants'}
+              {searchQuery ? 'Search Results' : t('home.nearbyRestaurants')}
             </Text>
             <Badge label={`${filteredRestaurants.length}`} variant="primary" size="sm" />
           </View>

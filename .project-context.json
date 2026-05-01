@@ -43,8 +43,8 @@
     "app/(auth)/login.tsx": "(modified this turn)",
     "app/(auth)/signup.tsx": "tsx",
     "app/(tabs)/_layout.tsx": "(modified this turn)",
-    "app/(tabs)/index.tsx": "tsx",
-    "app/(tabs)/orders.tsx": "tsx",
+    "app/(tabs)/index.tsx": "(modified this turn)",
+    "app/(tabs)/orders.tsx": "(modified this turn)",
     "app/(tabs)/profile.tsx": "(modified this turn)",
     "app/restaurant/[id].tsx": "(modified this turn)",
     "app/checkout.tsx": "(modified this turn)",
@@ -101,11 +101,15 @@
     {
       "summary": "add arabic and Franch language... → 9 files written, 20 reasoning rounds",
       "timestamp": "2026-05-01T01:18:15.729Z"
+    },
+    {
+      "summary": "make the change also in home and order tab... → 2 files written, 5 reasoning rounds",
+      "timestamp": "2026-05-01T01:24:12.824Z"
     }
   ],
   "metadata": {
     "createdAt": "2026-05-01T00:38:46.481Z",
-    "lastUpdated": "2026-05-01T01:18:15.730Z",
+    "lastUpdated": "2026-05-01T01:24:12.825Z",
     "projectName": "project-5c8dcf9a",
     "platform": "react-native",
     "originalPrompt": "create a food delivery app ",

@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/hooks/useTranslation';
 import { useStore } from '@/store/useStore';
 import { OrderCard } from '@/components/shared/OrderCard';
 import { SkeletonListItem } from '@/components/ui/Skeleton';
@@ -22,6 +23,7 @@ export default function OrdersScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { t } = useTranslation();
   const { orders, isLoadingOrders, fetchOrders, cart } = useStore();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -55,7 +57,7 @@ export default function OrdersScreen() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 10, backgroundColor: theme.card }]}>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>My Orders</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>{t('orders.title')}</Text>
         {cartItemCount > 0 && (
           <Pressable
             onPress={() => router.push('/checkout')}
@@ -63,7 +65,7 @@ export default function OrdersScreen() {
           >
             <Ionicons name="cart" size={20} color={theme.primary} />
             <Text style={[styles.cartText, { color: theme.primary }]}>
-              {cartItemCount} items
+              {cartItemCount} {t('cart.items')}
             </Text>
           </Pressable>
         )}
@@ -87,7 +89,7 @@ export default function OrdersScreen() {
               { color: activeTab === 'active' ? theme.primary : theme.textSecondary },
             ]}
           >
-            Active
+            {t('orders.active')}
           </Text>
           {activeOrders.length > 0 && (
             <Badge label={`${activeOrders.length}`} variant="primary" size="sm" />
@@ -109,7 +111,7 @@ export default function OrdersScreen() {
               { color: activeTab === 'past' ? theme.primary : theme.textSecondary },
             ]}
           >
-            Past Orders
+            {t('orders.history')}
           </Text>
         </Pressable>
       </View>
@@ -134,9 +136,9 @@ export default function OrdersScreen() {
               <View style={[styles.emptyIcon, { backgroundColor: theme.primaryLightest }]}>
                 <Ionicons name="receipt-outline" size={48} color={theme.primary} />
               </View>
-              <Text style={[styles.emptyTitle, { color: theme.text }]}>No active orders</Text>
+              <Text style={[styles.emptyTitle, { color: theme.text }]}>{t('orders.empty')}</Text>
               <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-                Your current orders will appear here
+                {t('orders.emptyDescription')}
               </Text>
               <Pressable
                 onPress={() => router.push('/(tabs)')}
@@ -155,9 +157,9 @@ export default function OrdersScreen() {
             <View style={[styles.emptyIcon, { backgroundColor: theme.backgroundTertiary }]}>
               <Ionicons name="time-outline" size={48} color={theme.textTertiary} />
             </View>
-            <Text style={[styles.emptyTitle, { color: theme.text }]}>No order history</Text>
+            <Text style={[styles.emptyTitle, { color: theme.text }]}>{t('orders.empty')}</Text>
             <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-              Your past orders will appear here
+              {t('orders.emptyDescription')}
             </Text>
           </View>
         ) : (
