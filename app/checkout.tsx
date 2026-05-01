@@ -127,7 +127,7 @@ export default function CheckoutScreen() {
             Add items to your cart to continue
           </Text>
           <Button
-            label="Browse Restaurants"
+            title="Browse Restaurants"
             onPress={() => router.push('/(tabs)')}
             style={{ marginTop: 24 }}
           />
@@ -319,12 +319,11 @@ export default function CheckoutScreen() {
                 autoCapitalize="characters"
               />
               <Button
-                label="Apply"
+                title="Apply"
                 onPress={handleApplyPromo}
                 loading={isApplyingPromo}
                 disabled={!promoCode.trim()}
-                size="sm"
-                style={{ minWidth: 80 }}
+                size="md"
               />
             </View>
           )}
@@ -343,9 +342,7 @@ export default function CheckoutScreen() {
             </Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
-              Delivery Fee
-            </Text>
+            <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>Delivery Fee</Text>
             <Text style={[styles.summaryValue, { color: theme.text }]}>
               ${totals.deliveryFee.toFixed(2)}
             </Text>
@@ -386,7 +383,7 @@ export default function CheckoutScreen() {
         ]}
       >
         <Button
-          label={`Place Order • $${totals.total.toFixed(2)}`}
+          title={`Place Order • $${totals.total.toFixed(2)}`}
           onPress={handlePlaceOrder}
           loading={isPlacingOrder}
           size="lg"
@@ -465,7 +462,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   addressLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   addressText: {
