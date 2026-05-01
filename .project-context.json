@@ -52,7 +52,14 @@
     "app/edit-profile.tsx": "(modified this turn)",
     "i18n/translations.ts": "(modified this turn)",
     "store/useLanguageStore.ts": "(modified this turn)",
-    "hooks/useTranslation.ts": "(modified this turn)"
+    "hooks/useTranslation.ts": "(modified this turn)",
+    "app/search.tsx": "(modified this turn)",
+    "app/favorites.tsx": "(modified this turn)",
+    "app/addresses.tsx": "(modified this turn)",
+    "app/payment-methods.tsx": "(modified this turn)",
+    "app/notifications.tsx": "(modified this turn)",
+    "app/help.tsx": "(modified this turn)",
+    "app/settings.tsx": "(modified this turn)"
   },
   "decisions": [],
   "knownIssues": [],
@@ -105,11 +112,15 @@
     {
       "summary": "make the change also in home and order tab... → 2 files written, 5 reasoning rounds",
       "timestamp": "2026-05-01T01:24:12.824Z"
+    },
+    {
+      "summary": "add all messing features... → 10 files written, 13 reasoning rounds",
+      "timestamp": "2026-05-01T01:32:05.890Z"
     }
   ],
   "metadata": {
     "createdAt": "2026-05-01T00:38:46.481Z",
-    "lastUpdated": "2026-05-01T01:24:12.825Z",
+    "lastUpdated": "2026-05-01T01:32:05.891Z",
     "projectName": "project-5c8dcf9a",
     "platform": "react-native",
     "originalPrompt": "create a food delivery app ",

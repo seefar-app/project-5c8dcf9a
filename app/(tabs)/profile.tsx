@@ -185,11 +185,32 @@ export default function ProfileScreen() {
       case 'edit-profile':
         router.push('/edit-profile');
         break;
+      case 'addresses':
+        router.push('/addresses');
+        break;
+      case 'payments':
+        router.push('/payment-methods');
+        break;
+      case 'favorites':
+        router.push('/favorites');
+        break;
+      case 'history':
+        router.push('/(tabs)/orders');
+        break;
+      case 'notifications':
+        router.push('/notifications');
+        break;
       case 'language':
         setShowLanguageModal(true);
         break;
+      case 'appearance':
+        router.push('/settings');
+        break;
+      case 'help':
+        router.push('/help');
+        break;
       default:
-        console.log(`Navigate to ${item}`);
+        Alert.alert('Coming Soon', `${item} feature is under development`);
         break;
     }
   };
@@ -296,9 +317,8 @@ export default function ProfileScreen() {
               onPress={() => handleMenuPress('language')}
             />
             <MenuItem
-              icon="moon-outline"
-              label="Appearance"
-              value="System"
+              icon="settings-outline"
+              label="App Settings"
               onPress={() => handleMenuPress('appearance')}
             />
           </Card>
@@ -342,10 +362,7 @@ export default function ProfileScreen() {
         </View>
       </ScrollView>
 
-      <LanguageModal
-        visible={showLanguageModal}
-        onClose={() => setShowLanguageModal(false)}
-      />
+      <LanguageModal visible={showLanguageModal} onClose={() => setShowLanguageModal(false)} />
     </>
   );
 }
@@ -355,7 +372,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingBottom: 30,
+    paddingBottom: 32,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
   },
@@ -365,29 +382,27 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#fff',
     marginTop: 16,
-    marginBottom: 4,
   },
   userEmail: {
     fontSize: 15,
     color: 'rgba(255,255,255,0.8)',
-    marginBottom: 20,
+    marginTop: 4,
   },
   statsRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    alignItems: 'center',
+    marginTop: 24,
+    paddingHorizontal: 20,
   },
   statItem: {
-    alignItems: 'center',
     flex: 1,
+    alignItems: 'center',
   },
   statValue: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#fff',
     marginBottom: 4,

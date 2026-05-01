@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   Pressable,
-  TextInput,
   RefreshControl,
   StyleSheet,
   Animated,
@@ -138,21 +137,15 @@ export default function HomeScreen() {
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <View style={[styles.searchBar, { backgroundColor: 'rgba(255,255,255,0.95)' }]}>
+          <Pressable
+            onPress={() => router.push('/search')}
+            style={[styles.searchBar, { backgroundColor: 'rgba(255,255,255,0.95)' }]}
+          >
             <Ionicons name="search" size={20} color={theme.textTertiary} />
-            <TextInput
-              style={[styles.searchInput, { color: theme.text }]}
-              placeholder={t('home.searchPlaceholder')}
-              placeholderTextColor={theme.textTertiary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <Pressable onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={20} color={theme.textTertiary} />
-              </Pressable>
-            )}
-          </View>
+            <Text style={[styles.searchPlaceholder, { color: theme.textTertiary }]}>
+              {t('home.searchPlaceholder')}
+            </Text>
+          </Pressable>
           <Pressable
             onPress={() => setShowMap(!showMap)}
             style={[styles.mapToggle, { backgroundColor: showMap ? '#fff' : 'rgba(255,255,255,0.3)' }]}
@@ -382,7 +375,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     gap: 12,
   },
-  searchInput: {
+  searchPlaceholder: {
     flex: 1,
     fontSize: 15,
   },
