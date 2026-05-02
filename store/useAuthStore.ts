@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import * as Crypto from 'expo-crypto';
+import { supabase } from '@/lib/supabase';
 import type { User, Address, PaymentMethod } from '@/types';
 
 interface AuthState {
@@ -8,70 +8,36 @@ interface AuthState {
   isLoading: boolean;
   authError: string | null;
   login: (email: string, password: string) => Promise<boolean>;
-  signup: (name: string, email: string, password: string, phone: string) => Promise<boolean>;
-  logout: () => void;
+  signup: (data: { name: string; email: string; password: string; phone: string }) => Promise<boolean>;
+  logout: () => Promise<void>;
   initializeAuth: () => Promise<void>;
-  updateUser: (updates: Partial<User>) => void;
-  addAddress: (address: Omit<Address, 'id'>) => void;
-  removeAddress: (addressId: string) => void;
-  setDefaultAddress: (addressId: string) => void;
-  addPaymentMethod: (method: Omit<PaymentMethod, 'id'>) => void;
-  removePaymentMethod: (methodId: string) => void;
-  setDefaultPaymentMethod: (methodId: string) => void;
+  updateUser: (updates: Partial<User>) => Promise<void>;
+  addAddress: (address: Omit<Address, 'id'>) => Promise<void>;
+  removeAddress: (addressId: string) => Promise<void>;
+  setDefaultAddress: (addressId: string) => Promise<void>;
+  addPaymentMethod: (method: Omit<PaymentMethod, 'id'>) => Promise<void>;
+  removePaymentMethod: (methodId: string) => Promise<void>;
+  setDefaultPaymentMethod: (methodId: string) => Promise<void>;
 }
 
-const mockUser: User = {
-  id: 'user-001',
-  name: 'Alex Johnson',
-  email: 'alex@example.com',
-  phone: '+1 555-0123',
-  avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-  addresses: [
-    {
-      id: 'addr-001',
-      label: 'Home',
-      street: '123 Forest Lane',
-      city: 'San Francisco',
-      zipCode: '94102',
-      lat: 37.7749,
-      lng: -122.4194,
-      isDefault: true,
+const mapDatabaseUserToUser = (dbUser: any): User => {
+  return {
+    id: dbUser.id,
+    name: dbUser.name || '',
+    email: dbUser.email || '',
+    phone: dbUser.phone || '',
+    avatar: dbUser.avatar || '',
+    addresses: [],
+    paymentMethods: [],
+    preferences: {
+      dietaryRestrictions: [],
+      notificationsEnabled: true,
+      defaultPaymentMethodId: undefined,
+      defaultAddressId: undefined,
     },
-    {
-      id: 'addr-002',
-      label: 'Work',
-      street: '456 Oak Street',
-      city: 'San Francisco',
-      zipCode: '94103',
-      lat: 37.7849,
-      lng: -122.4094,
-      isDefault: false,
-    },
-  ],
-  paymentMethods: [
-    {
-      id: 'pay-001',
-      type: 'card',
-      label: 'Visa ending in 4242',
-      lastFour: '4242',
-      expiryDate: '12/26',
-      isDefault: true,
-    },
-    {
-      id: 'pay-002',
-      type: 'cash',
-      label: 'Cash on Delivery',
-      isDefault: false,
-    },
-  ],
-  preferences: {
-    dietaryRestrictions: ['vegetarian'],
-    notificationsEnabled: true,
-    defaultPaymentMethodId: 'pay-001',
-    defaultAddressId: 'addr-001',
-  },
-  totalOrders: 47,
-  joinedDate: new Date('2023-06-15'),
+    totalOrders: dbUser.totalOrders || 0,
+    joinedDate: dbUser.joinedDate ? new Date(dbUser.joinedDate) : new Date(),
+  };
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -82,146 +48,368 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   login: async (email: string, password: string) => {
     set({ isLoading: true, authError: null });
-    
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      if (email === 'test@test.com' && password === 'password') {
-        set({ 
-          user: mockUser, 
-          isAuthenticated: true, 
-          isLoading: false,
-          authError: null,
-        });
-        return true;
-      }
-      
-      if (email && password.length >= 6) {
-        set({ 
-          user: { ...mockUser, email, name: email.split('@')[0] }, 
-          isAuthenticated: true, 
-          isLoading: false,
-          authError: null,
-        });
-        return true;
-      }
-      
-      set({ 
-        isLoading: false, 
-        authError: 'Invalid email or password. Please try again.',
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      return false;
+
+      if (authError) {
+        let friendlyMessage = 'Incorrect email or password. Please try again.';
+        if (authError.message.includes('Invalid login credentials')) {
+          friendlyMessage = 'Incorrect email or password. Please try again.';
+        } else if (authError.message.includes('Email not confirmed')) {
+          friendlyMessage = 'Please verify your email address.';
+        }
+        set({ isLoading: false, authError: friendlyMessage });
+        return false;
+      }
+
+      if (!authData.user) {
+        set({ isLoading: false, authError: 'Login failed. Please try again.' });
+        return false;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profileError || !profile) {
+        set({ isLoading: false, authError: 'Failed to load user profile.' });
+        return false;
+      }
+
+      const { data: addresses } = await supabase
+        .from('addresses')
+        .select('*')
+        .eq('user_id', authData.user.id);
+
+      const { data: paymentMethods } = await supabase
+        .from('payment_methods')
+        .select('*')
+        .eq('user_id', authData.user.id);
+
+      const { data: preferences } = await supabase
+        .from('user_preferences')
+        .select('*')
+        .eq('user_id', authData.user.id)
+        .single();
+
+      const user: User = {
+        id: profile.id,
+        name: profile.name || '',
+        email: profile.email || '',
+        phone: profile.phone || '',
+        avatar: profile.avatar || '',
+        addresses: addresses || [],
+        paymentMethods: paymentMethods || [],
+        preferences: preferences || {
+          dietaryRestrictions: [],
+          notificationsEnabled: true,
+          defaultPaymentMethodId: undefined,
+          defaultAddressId: undefined,
+        },
+        totalOrders: profile.totalOrders || 0,
+        joinedDate: profile.joinedDate ? new Date(profile.joinedDate) : new Date(),
+      };
+
+      set({ user, isAuthenticated: true, isLoading: false, authError: null });
+      return true;
     } catch (error) {
-      set({ 
-        isLoading: false, 
-        authError: 'An unexpected error occurred. Please try again.',
-      });
+      set({ isLoading: false, authError: 'An unexpected error occurred. Please try again.' });
       return false;
     }
   },
 
-  signup: async (name: string, email: string, password: string, phone: string) => {
+  signup: async (data: { name: string; email: string; password: string; phone: string }) => {
     set({ isLoading: true, authError: null });
-    
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      
-      if (!name || name.length < 2) {
+      if (!data.name || data.name.length < 2) {
         set({ isLoading: false, authError: 'Please enter a valid name.' });
         return false;
       }
-      
-      if (!email || !email.includes('@')) {
+
+      if (!data.email || !data.email.includes('@')) {
         set({ isLoading: false, authError: 'Please enter a valid email address.' });
         return false;
       }
-      
-      if (!password || password.length < 6) {
+
+      if (!data.password || data.password.length < 6) {
         set({ isLoading: false, authError: 'Password must be at least 6 characters.' });
         return false;
       }
-      
-      const newUser: User = {
-        ...mockUser,
-        id: Crypto.randomUUID(),
-        name,
-        email,
-        phone,
-        totalOrders: 0,
-        joinedDate: new Date(),
-      };
-      
-      set({ 
-        user: newUser, 
-        isAuthenticated: true, 
-        isLoading: false,
-        authError: null,
+
+      const { data: authData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            name: data.name,
+            phone: data.phone,
+          },
+        },
       });
+
+      if (error) {
+        let friendlyMessage = 'Failed to create account. Please try again.';
+        if (error.message.includes('already registered')) {
+          friendlyMessage = 'An account with this email already exists.';
+        } else if (error.message.includes('Password')) {
+          friendlyMessage = 'Password must be at least 6 characters.';
+        }
+        set({ isLoading: false, authError: friendlyMessage });
+        return false;
+      }
+
+      if (!authData.user) {
+        set({ isLoading: false, authError: 'Failed to create account. Please try again.' });
+        return false;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profileError || !profile) {
+        set({ isLoading: false, authError: 'Failed to load user profile.' });
+        return false;
+      }
+
+      const user: User = mapDatabaseUserToUser(profile);
+      user.addresses = [];
+      user.paymentMethods = [];
+
+      set({ user, isAuthenticated: true, isLoading: false, authError: null });
       return true;
     } catch (error) {
-      set({ 
-        isLoading: false, 
-        authError: 'Failed to create account. Please try again.',
-      });
+      set({ isLoading: false, authError: 'Failed to create account. Please try again.' });
       return false;
     }
   },
 
-  logout: () => {
-    set({ 
-      user: null, 
-      isAuthenticated: false, 
-      isLoading: false,
-      authError: null,
-    });
+  logout: async () => {
+    try {
+      await supabase.auth.signOut();
+      set({ user: null, isAuthenticated: false, isLoading: false, authError: null });
+    } catch (error) {
+      set({ authError: 'Failed to logout. Please try again.' });
+    }
   },
 
   initializeAuth: async () => {
     set({ isLoading: true });
-    
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      set({ isLoading: false });
+      const { data: sessionData } = await supabase.auth.getSession();
+
+      if (sessionData.session?.user) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', sessionData.session.user.id)
+          .single();
+
+        if (profile) {
+          const { data: addresses } = await supabase
+            .from('addresses')
+            .select('*')
+            .eq('user_id', sessionData.session.user.id);
+
+          const { data: paymentMethods } = await supabase
+            .from('payment_methods')
+            .select('*')
+            .eq('user_id', sessionData.session.user.id);
+
+          const { data: preferences } = await supabase
+            .from('user_preferences')
+            .select('*')
+            .eq('user_id', sessionData.session.user.id)
+            .single();
+
+          const user: User = {
+            id: profile.id,
+            name: profile.name || '',
+            email: profile.email || '',
+            phone: profile.phone || '',
+            avatar: profile.avatar || '',
+            addresses: addresses || [],
+            paymentMethods: paymentMethods || [],
+            preferences: preferences || {
+              dietaryRestrictions: [],
+              notificationsEnabled: true,
+              defaultPaymentMethodId: undefined,
+              defaultAddressId: undefined,
+            },
+            totalOrders: profile.totalOrders || 0,
+            joinedDate: profile.joinedDate ? new Date(profile.joinedDate) : new Date(),
+          };
+
+          set({ user, isAuthenticated: true, isLoading: false });
+        } else {
+          set({ isLoading: false });
+        }
+      } else {
+        set({ isLoading: false });
+      }
+
+      const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_OUT') {
+          set({ user: null, isAuthenticated: false });
+        } else if (event === 'SIGNED_IN' && session?.user) {
+          const { data: profile } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profile) {
+            const { data: addresses } = await supabase
+              .from('addresses')
+              .select('*')
+              .eq('user_id', session.user.id);
+
+            const { data: paymentMethods } = await supabase
+              .from('payment_methods')
+              .select('*')
+              .eq('user_id', session.user.id);
+
+            const { data: preferences } = await supabase
+              .from('user_preferences')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
+
+            const user: User = {
+              id: profile.id,
+              name: profile.name || '',
+              email: profile.email || '',
+              phone: profile.phone || '',
+              avatar: profile.avatar || '',
+              addresses: addresses || [],
+              paymentMethods: paymentMethods || [],
+              preferences: preferences || {
+                dietaryRestrictions: [],
+                notificationsEnabled: true,
+                defaultPaymentMethodId: undefined,
+                defaultAddressId: undefined,
+              },
+              totalOrders: profile.totalOrders || 0,
+              joinedDate: profile.joinedDate ? new Date(profile.joinedDate) : new Date(),
+            };
+
+            set({ user, isAuthenticated: true });
+          }
+        }
+      });
     } catch (error) {
       set({ isLoading: false });
     }
   },
 
-  updateUser: (updates) => {
+  updateUser: async (updates) => {
     const { user } = get();
-    if (user) {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', user.id);
+
+      if (error) throw error;
+
       set({ user: { ...user, ...updates } });
+    } catch (error) {
+      set({ authError: 'Failed to update profile. Please try again.' });
     }
   },
 
-  addAddress: (address) => {
+  addAddress: async (address) => {
     const { user } = get();
-    if (user) {
-      const newAddress: Address = { ...address, id: Crypto.randomUUID() };
-      set({ 
-        user: { 
-          ...user, 
+    if (!user) return;
+
+    try {
+      const { data: newAddress, error } = await supabase
+        .from('addresses')
+        .insert({
+          user_id: user.id,
+          label: address.label,
+          street: address.street,
+          city: address.city,
+          zipCode: address.zipCode,
+          lat: address.lat,
+          lng: address.lng,
+          isDefault: address.isDefault || false,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      set({
+        user: {
+          ...user,
           addresses: [...user.addresses, newAddress],
         },
       });
+    } catch (error) {
+      set({ authError: 'Failed to add address. Please try again.' });
     }
   },
 
-  removeAddress: (addressId) => {
+  removeAddress: async (addressId) => {
     const { user } = get();
-    if (user) {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase.from('addresses').delete().eq('id', addressId);
+
+      if (error) throw error;
+
       set({
         user: {
           ...user,
           addresses: user.addresses.filter((a) => a.id !== addressId),
         },
       });
+    } catch (error) {
+      set({ authError: 'Failed to remove address. Please try again.' });
     }
   },
 
-  setDefaultAddress: (addressId) => {
+  setDefaultAddress: async (addressId) => {
     const { user } = get();
-    if (user) {
+    if (!user) return;
+
+    try {
+      const { error: updateError } = await supabase
+        .from('addresses')
+        .update({ isDefault: true })
+        .eq('id', addressId);
+
+      if (updateError) throw updateError;
+
+      const { error: resetError } = await supabase
+        .from('addresses')
+        .update({ isDefault: false })
+        .eq('user_id', user.id)
+        .neq('id', addressId);
+
+      if (resetError) throw resetError;
+
+      const { error: prefError } = await supabase
+        .from('user_preferences')
+        .update({ defaultAddressId: addressId })
+        .eq('user_id', user.id);
+
+      if (prefError) throw prefError;
+
       set({
         user: {
           ...user,
@@ -235,37 +423,89 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           },
         },
       });
+    } catch (error) {
+      set({ authError: 'Failed to set default address. Please try again.' });
     }
   },
 
-  addPaymentMethod: (method) => {
+  addPaymentMethod: async (method) => {
     const { user } = get();
-    if (user) {
-      const newMethod: PaymentMethod = { ...method, id: Crypto.randomUUID() };
+    if (!user) return;
+
+    try {
+      const { data: newMethod, error } = await supabase
+        .from('payment_methods')
+        .insert({
+          user_id: user.id,
+          type: method.type,
+          label: method.label,
+          lastFour: method.lastFour,
+          expiryDate: method.expiryDate,
+          isDefault: method.isDefault || false,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
       set({
         user: {
           ...user,
           paymentMethods: [...user.paymentMethods, newMethod],
         },
       });
+    } catch (error) {
+      set({ authError: 'Failed to add payment method. Please try again.' });
     }
   },
 
-  removePaymentMethod: (methodId) => {
+  removePaymentMethod: async (methodId) => {
     const { user } = get();
-    if (user) {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase.from('payment_methods').delete().eq('id', methodId);
+
+      if (error) throw error;
+
       set({
         user: {
           ...user,
           paymentMethods: user.paymentMethods.filter((p) => p.id !== methodId),
         },
       });
+    } catch (error) {
+      set({ authError: 'Failed to remove payment method. Please try again.' });
     }
   },
 
-  setDefaultPaymentMethod: (methodId) => {
+  setDefaultPaymentMethod: async (methodId) => {
     const { user } = get();
-    if (user) {
+    if (!user) return;
+
+    try {
+      const { error: updateError } = await supabase
+        .from('payment_methods')
+        .update({ isDefault: true })
+        .eq('id', methodId);
+
+      if (updateError) throw updateError;
+
+      const { error: resetError } = await supabase
+        .from('payment_methods')
+        .update({ isDefault: false })
+        .eq('user_id', user.id)
+        .neq('id', methodId);
+
+      if (resetError) throw resetError;
+
+      const { error: prefError } = await supabase
+        .from('user_preferences')
+        .update({ defaultPaymentMethodId: methodId })
+        .eq('user_id', user.id);
+
+      if (prefError) throw prefError;
+
       set({
         user: {
           ...user,
@@ -279,6 +519,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           },
         },
       });
+    } catch (error) {
+      set({ authError: 'Failed to set default payment method. Please try again.' });
     }
   },
 }));
