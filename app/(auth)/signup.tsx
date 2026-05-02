@@ -58,7 +58,7 @@ export default function SignUpScreen() {
     }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const success = await signup(name, email, password, phone);
+    const success = await signup({ name, email, password, phone });
     if (success) {
       router.replace('/(tabs)');
     }
