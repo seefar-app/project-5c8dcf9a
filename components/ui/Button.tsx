@@ -11,11 +11,12 @@ import {
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
+import { BlurView } from 'expo-blur';
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'glass';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   disabled?: boolean;
@@ -28,7 +29,7 @@ interface ButtonProps {
 export function Button({
   title,
   onPress,
-  variant = 'primary',
+  variant = 'glass',
   size = 'md',
   loading = false,
   disabled = false,
@@ -62,49 +63,69 @@ export function Button({
     }
   };
 
-  const getVariantStyles = (): { container: ViewStyle; text: TextStyle } => {
+  const getVariantStyles = (): { container: ViewStyle; text: TextStyle; useBlur: boolean } => {
     const isDisabled = disabled || loading;
     
     switch (variant) {
       case 'primary':
         return {
           container: {
-            backgroundColor: isDisabled ? theme.primaryLighter : theme.primary,
+            backgroundColor: isDisabled ? 'rgba(5, 150, 105, 0.5)' : 'rgba(5, 150, 105, 0.8)',
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.3)',
           },
           text: { color: '#ffffff' },
+          useBlur: true,
         };
       case 'secondary':
         return {
           container: {
-            backgroundColor: isDisabled ? theme.backgroundTertiary : theme.primaryLightest,
+            backgroundColor: isDisabled ? 'rgba(247, 254, 231, 0.3)' : 'rgba(247, 254, 231, 0.5)',
+            borderWidth: 1,
+            borderColor: 'rgba(5, 150, 105, 0.2)',
           },
           text: { color: isDisabled ? theme.textTertiary : theme.primary },
+          useBlur: true,
         };
       case 'outline':
         return {
           container: {
-            backgroundColor: 'transparent',
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
             borderWidth: 2,
-            borderColor: isDisabled ? theme.border : theme.primary,
+            borderColor: isDisabled ? 'rgba(255, 255, 255, 0.2)' : 'rgba(5, 150, 105, 0.6)',
           },
           text: { color: isDisabled ? theme.textTertiary : theme.primary },
+          useBlur: true,
         };
       case 'ghost':
         return {
-          container: { backgroundColor: 'transparent' },
+          container: { 
+            backgroundColor: 'transparent',
+            borderWidth: 0,
+          },
           text: { color: isDisabled ? theme.textTertiary : theme.primary },
+          useBlur: false,
         };
       case 'destructive':
         return {
           container: {
-            backgroundColor: isDisabled ? theme.errorLight : theme.error,
+            backgroundColor: isDisabled ? 'rgba(239, 68, 68, 0.5)' : 'rgba(239, 68, 68, 0.8)',
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.3)',
           },
           text: { color: '#ffffff' },
+          useBlur: true,
         };
+      case 'glass':
       default:
         return {
-          container: { backgroundColor: theme.primary },
-          text: { color: '#ffffff' },
+          container: { 
+            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+          },
+          text: { color: theme.text },
+          useBlur: true,
         };
     }
   };
@@ -135,6 +156,39 @@ export function Button({
   const variantStyles = getVariantStyles();
   const sizeStyles = getSizeStyles();
 
+  const content = (
+    <>
+      {loading ? (
+        <ActivityIndicator
+          size="small"
+          color={variantStyles.text.color}
+        />
+      ) : (
+        <>
+          {icon && iconPosition === 'left' && (
+            <Ionicons
+              name={icon}
+              size={sizeStyles.iconSize}
+              color={variantStyles.text.color as string}
+              style={styles.iconLeft}
+            />
+          )}
+          <Text style={[styles.text, variantStyles.text, sizeStyles.text]}>
+            {title}
+          </Text>
+          {icon && iconPosition === 'right' && (
+            <Ionicons
+              name={icon}
+              size={sizeStyles.iconSize}
+              color={variantStyles.text.color as string}
+              style={styles.iconRight}
+            />
+          )}
+        </>
+      )}
+    </>
+  );
+
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }], width: fullWidth ? '100%' : undefined }}>
       <Pressable
@@ -150,33 +204,12 @@ export function Button({
           style,
         ]}
       >
-        {loading ? (
-          <ActivityIndicator
-            size="small"
-            color={variantStyles.text.color}
-          />
+        {variantStyles.useBlur ? (
+          <BlurView intensity={15} tint="light" style={styles.blurContent}>
+            {content}
+          </BlurView>
         ) : (
-          <>
-            {icon && iconPosition === 'left' && (
-              <Ionicons
-                name={icon}
-                size={sizeStyles.iconSize}
-                color={variantStyles.text.color as string}
-                style={styles.iconLeft}
-              />
-            )}
-            <Text style={[styles.text, variantStyles.text, sizeStyles.text]}>
-              {title}
-            </Text>
-            {icon && iconPosition === 'right' && (
-              <Ionicons
-                name={icon}
-                size={sizeStyles.iconSize}
-                color={variantStyles.text.color as string}
-                style={styles.iconRight}
-              />
-            )}
-          </>
+          content
         )}
       </Pressable>
     </Animated.View>
@@ -188,7 +221,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 16,
+    borderRadius: 20,
+    overflow: 'hidden',
   },
   fullWidth: {
     width: '100%',
@@ -201,5 +235,11 @@ const styles = StyleSheet.create({
   },
   iconRight: {
     marginLeft: 8,
+  },
+  blurContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
   },
 });

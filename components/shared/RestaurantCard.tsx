@@ -3,8 +3,8 @@ import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
-import { Shadows } from '@/constants/Colors';
 import { Badge } from '@/components/ui/Badge';
+import { BlurView } from 'expo-blur';
 import type { Restaurant } from '@/types';
 
 interface RestaurantCardProps {
@@ -38,29 +38,31 @@ export function RestaurantCard({
           onPress={onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          style={[styles.compactContainer, { backgroundColor: theme.card }, Shadows.sm]}
+          style={[styles.compactContainer]}
         >
-          <Image
-            source={{ uri: restaurant.image }}
-            style={styles.compactImage}
-            contentFit="cover"
-            transition={200}
-          />
-          <View style={styles.compactContent}>
-            <Text style={[styles.compactName, { color: theme.text }]} numberOfLines={1}>
-              {restaurant.name}
-            </Text>
-            <View style={styles.compactMeta}>
-              <Ionicons name="star" size={12} color="#f59e0b" />
-              <Text style={[styles.compactRating, { color: theme.text }]}>
-                {restaurant.rating}
+          <BlurView intensity={30} tint="light" style={styles.compactBlur}>
+            <Image
+              source={{ uri: restaurant.image }}
+              style={styles.compactImage}
+              contentFit="cover"
+              transition={200}
+            />
+            <View style={styles.compactContent}>
+              <Text style={[styles.compactName, { color: theme.text }]} numberOfLines={1}>
+                {restaurant.name}
               </Text>
-              <Text style={[styles.compactDot, { color: theme.textTertiary }]}>•</Text>
-              <Text style={[styles.compactTime, { color: theme.textSecondary }]}>
-                {restaurant.deliveryTime}
-              </Text>
+              <View style={styles.compactMeta}>
+                <Ionicons name="star" size={12} color="#f59e0b" />
+                <Text style={[styles.compactRating, { color: theme.text }]}>
+                  {restaurant.rating}
+                </Text>
+                <Text style={[styles.compactDot, { color: theme.textTertiary }]}>•</Text>
+                <Text style={[styles.compactTime, { color: theme.textSecondary }]}>
+                  {restaurant.deliveryTime}
+                </Text>
+              </View>
             </View>
-          </View>
+          </BlurView>
         </Pressable>
       </Animated.View>
     );
@@ -73,7 +75,7 @@ export function RestaurantCard({
           onPress={onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          style={[styles.featuredContainer, Shadows.lg]}
+          style={[styles.featuredContainer]}
         >
           <Image
             source={{ uri: restaurant.image }}
@@ -82,28 +84,32 @@ export function RestaurantCard({
             transition={200}
           />
           <View style={styles.featuredOverlay}>
-            {restaurant.promoText && (
-              <Badge label={restaurant.promoText} variant="primary" size="sm" />
-            )}
-            <View style={styles.featuredContent}>
-              <Text style={styles.featuredName} numberOfLines={1}>
-                {restaurant.name}
-              </Text>
-              <View style={styles.featuredMeta}>
-                <Ionicons name="star" size={14} color="#f59e0b" />
-                <Text style={styles.featuredRating}>{restaurant.rating}</Text>
-                <Text style={styles.featuredDot}>•</Text>
-                <Text style={styles.featuredTime}>{restaurant.deliveryTime}</Text>
+            <BlurView intensity={40} tint="dark" style={styles.featuredBlur}>
+              {restaurant.promoText && (
+                <Badge label={restaurant.promoText} variant="primary" size="sm" />
+              )}
+              <View style={styles.featuredContent}>
+                <Text style={styles.featuredName} numberOfLines={1}>
+                  {restaurant.name}
+                </Text>
+                <View style={styles.featuredMeta}>
+                  <Ionicons name="star" size={14} color="#f59e0b" />
+                  <Text style={styles.featuredRating}>{restaurant.rating}</Text>
+                  <Text style={styles.featuredDot}>•</Text>
+                  <Text style={styles.featuredTime}>{restaurant.deliveryTime}</Text>
+                </View>
               </View>
-            </View>
+            </BlurView>
           </View>
           {onFavoritePress && (
             <Pressable onPress={onFavoritePress} style={styles.favoriteButton}>
-              <Ionicons
-                name={restaurant.isFavorite ? 'heart' : 'heart-outline'}
-                size={22}
-                color={restaurant.isFavorite ? '#ef4444' : '#ffffff'}
-              />
+              <BlurView intensity={30} tint="dark" style={styles.favoriteBlur}>
+                <Ionicons
+                  name={restaurant.isFavorite ? 'heart' : 'heart-outline'}
+                  size={22}
+                  color={restaurant.isFavorite ? '#ef4444' : '#ffffff'}
+                />
+              </BlurView>
             </Pressable>
           )}
         </Pressable>
@@ -117,7 +123,7 @@ export function RestaurantCard({
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        style={[styles.container, { backgroundColor: theme.card }, Shadows.md]}
+        style={[styles.container]}
       >
         <View style={styles.imageContainer}>
           <Image
@@ -126,6 +132,9 @@ export function RestaurantCard({
             contentFit="cover"
             transition={200}
           />
+          <View style={styles.glassOverlay}>
+            <BlurView intensity={20} tint="light" style={styles.overlayBlur} />
+          </View>
           {restaurant.promoText && (
             <View style={styles.promoBadge}>
               <Badge label={restaurant.promoText} variant="primary" size="sm" />
@@ -133,43 +142,45 @@ export function RestaurantCard({
           )}
           {onFavoritePress && (
             <Pressable onPress={onFavoritePress} style={styles.favoriteButtonCard}>
-              <View style={[styles.favoriteButtonBg, { backgroundColor: theme.card }]}>
+              <BlurView intensity={30} tint="light" style={styles.favoriteButtonBg}>
                 <Ionicons
                   name={restaurant.isFavorite ? 'heart' : 'heart-outline'}
                   size={20}
                   color={restaurant.isFavorite ? '#ef4444' : theme.textSecondary}
                 />
-              </View>
+              </BlurView>
             </Pressable>
           )}
         </View>
-        <View style={styles.content}>
-          <Text style={[styles.name, { color: theme.text }]} numberOfLines={1}>
-            {restaurant.name}
-          </Text>
-          <Text style={[styles.cuisine, { color: theme.textSecondary }]} numberOfLines={1}>
-            {restaurant.cuisine.join(' • ')}
-          </Text>
-          <View style={styles.metaRow}>
-            <View style={styles.ratingContainer}>
-              <Ionicons name="star" size={14} color="#f59e0b" />
-              <Text style={[styles.rating, { color: theme.text }]}>
-                {restaurant.rating}
+        <BlurView intensity={25} tint="light" style={styles.contentBlur}>
+          <View style={styles.content}>
+            <Text style={[styles.name, { color: theme.text }]} numberOfLines={1}>
+              {restaurant.name}
+            </Text>
+            <Text style={[styles.cuisine, { color: theme.textSecondary }]} numberOfLines={1}>
+              {restaurant.cuisine.join(' • ')}
+            </Text>
+            <View style={styles.metaRow}>
+              <View style={styles.ratingContainer}>
+                <Ionicons name="star" size={14} color="#f59e0b" />
+                <Text style={[styles.rating, { color: theme.text }]}>
+                  {restaurant.rating}
+                </Text>
+                <Text style={[styles.reviewCount, { color: theme.textTertiary }]}>
+                  ({restaurant.reviewCount})
+                </Text>
+              </View>
+              <Text style={[styles.dot, { color: theme.textTertiary }]}>•</Text>
+              <Text style={[styles.deliveryTime, { color: theme.textSecondary }]}>
+                {restaurant.deliveryTime}
               </Text>
-              <Text style={[styles.reviewCount, { color: theme.textTertiary }]}>
-                ({restaurant.reviewCount})
+              <Text style={[styles.dot, { color: theme.textTertiary }]}>•</Text>
+              <Text style={[styles.deliveryFee, { color: theme.textSecondary }]}>
+                ${restaurant.deliveryFee.toFixed(2)} delivery
               </Text>
             </View>
-            <Text style={[styles.dot, { color: theme.textTertiary }]}>•</Text>
-            <Text style={[styles.deliveryTime, { color: theme.textSecondary }]}>
-              {restaurant.deliveryTime}
-            </Text>
-            <Text style={[styles.dot, { color: theme.textTertiary }]}>•</Text>
-            <Text style={[styles.deliveryFee, { color: theme.textSecondary }]}>
-              ${restaurant.deliveryFee.toFixed(2)} delivery
-            </Text>
           </View>
-        </View>
+        </BlurView>
       </Pressable>
     </Animated.View>
   );
@@ -177,9 +188,12 @@ export function RestaurantCard({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 20,
+    borderRadius: 24,
     marginBottom: 16,
     overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
   imageContainer: {
     position: 'relative',
@@ -187,6 +201,16 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: 160,
+  },
+  glassOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+  },
+  overlayBlur: {
+    flex: 1,
   },
   promoBadge: {
     position: 'absolute',
@@ -197,13 +221,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     right: 12,
+    borderRadius: 18,
+    overflow: 'hidden',
   },
   favoriteButtonBg: {
     width: 36,
     height: 36,
-    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  contentBlur: {
+    overflow: 'hidden',
   },
   content: {
     padding: 16,
@@ -246,11 +274,17 @@ const styles = StyleSheet.create({
   },
   // Compact styles
   compactContainer: {
-    flexDirection: 'row',
-    borderRadius: 16,
-    padding: 12,
+    borderRadius: 20,
     marginRight: 12,
     width: 220,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  compactBlur: {
+    flexDirection: 'row',
+    padding: 12,
   },
   compactImage: {
     width: 60,
@@ -286,7 +320,7 @@ const styles = StyleSheet.create({
   featuredContainer: {
     width: 280,
     height: 180,
-    borderRadius: 20,
+    borderRadius: 24,
     marginRight: 16,
     overflow: 'hidden',
   },
@@ -296,7 +330,9 @@ const styles = StyleSheet.create({
   },
   featuredOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  featuredBlur: {
+    flex: 1,
     padding: 16,
     justifyContent: 'space-between',
   },
@@ -332,7 +368,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    overflow: 'hidden',
+  },
+  favoriteBlur: {
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
+import { BlurView } from 'expo-blur';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -35,10 +36,10 @@ export function Input({
   const [isSecure, setIsSecure] = useState(secureTextEntry);
 
   const borderColor = error
-    ? theme.error
+    ? 'rgba(239, 68, 68, 0.6)'
     : isFocused
-    ? theme.primary
-    : theme.border;
+    ? 'rgba(5, 150, 105, 0.6)'
+    : 'rgba(255, 255, 255, 0.3)';
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -47,51 +48,55 @@ export function Input({
       )}
       <View
         style={[
-          styles.inputContainer,
+          styles.inputWrapper,
           {
             borderColor,
-            backgroundColor: theme.backgroundSecondary,
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
           },
         ]}
       >
-        {leftIcon && (
-          <Ionicons
-            name={leftIcon}
-            size={20}
-            color={isFocused ? theme.primary : theme.textTertiary}
-            style={styles.leftIcon}
-          />
-        )}
-        <TextInput
-          style={[
-            styles.input,
-            {
-              color: theme.text,
-            },
-          ]}
-          placeholderTextColor={theme.textTertiary}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          secureTextEntry={isSecure}
-          {...props}
-        />
-        {secureTextEntry && (
-          <Pressable onPress={() => setIsSecure(!isSecure)} style={styles.rightIcon}>
-            <Ionicons
-              name={isSecure ? 'eye-outline' : 'eye-off-outline'}
-              size={20}
-              color={theme.textTertiary}
+        <BlurView intensity={20} tint="light" style={styles.blurContainer}>
+          <View style={styles.inputContainer}>
+            {leftIcon && (
+              <Ionicons
+                name={leftIcon}
+                size={20}
+                color={isFocused ? theme.primary : theme.textTertiary}
+                style={styles.leftIcon}
+              />
+            )}
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  color: theme.text,
+                },
+              ]}
+              placeholderTextColor={theme.textTertiary}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              secureTextEntry={isSecure}
+              {...props}
             />
-          </Pressable>
-        )}
-        {rightIcon && !secureTextEntry && (
-          <Pressable onPress={onRightIconPress} style={styles.rightIcon}>
-            <Ionicons name={rightIcon} size={20} color={theme.textTertiary} />
-          </Pressable>
-        )}
+            {secureTextEntry && (
+              <Pressable onPress={() => setIsSecure(!isSecure)} style={styles.rightIcon}>
+                <Ionicons
+                  name={isSecure ? 'eye-outline' : 'eye-off-outline'}
+                  size={20}
+                  color={theme.textTertiary}
+                />
+              </Pressable>
+            )}
+            {rightIcon && !secureTextEntry && (
+              <Pressable onPress={onRightIconPress} style={styles.rightIcon}>
+                <Ionicons name={rightIcon} size={20} color={theme.textTertiary} />
+              </Pressable>
+            )}
+          </View>
+        </BlurView>
       </View>
       {error && (
-        <Text style={[styles.error, { color: theme.error }]}>{error}</Text>
+        <Text style={[styles.error, { color: 'rgba(239, 68, 68, 0.9)' }]}>{error}</Text>
       )}
     </View>
   );
@@ -106,11 +111,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 8,
   },
+  inputWrapper: {
+    borderWidth: 2,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  blurContainer: {
+    overflow: 'hidden',
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 2,
-    borderRadius: 16,
     paddingHorizontal: 16,
     height: 56,
   },

@@ -707,11 +707,11 @@
       "contractHash": "c6e90de5bab3baf9a0d2dfc01c3c550b7ef93b5f2f7eea1127f1fc3d6ada1b67"
     },
     "adminPanel": {
-      "projectId": null,
-      "projectName": null,
-      "projectPath": null,
-      "lastGeneratedAt": null,
-      "contractHash": null
+      "projectId": "69f76eeebaf84e398e6dac40",
+      "projectName": "project-5c8dcf9a-admin",
+      "projectPath": "/Users/khalilhaif/Desktop/dzairBuilder/generated-projects/project-5c8dcf9a-admin",
+      "lastGeneratedAt": "2026-05-03T15:51:11.897Z",
+      "contractHash": "c6e90de5bab3baf9a0d2dfc01c3c550b7ef93b5f2f7eea1127f1fc3d6ada1b67"
     }
   },
   "admin": {
